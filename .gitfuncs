@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# .gitfuncs: script file to source for more complicated Git aliases
+# USAGE (within ~/.gitconfig): alias-name = !"source ~/.gitfuncs; func-name"
+
+# ANSI escape sequences for colored text
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+END=$(tput sgr0)
+
+# git gl -- list all key-value pairs in ~/.gitconfig with colored output
+function gl() {
+    local REGEXP='(.+)\.(.+)(=.+)'
+    local REPSTR="${YELLOW}\\1${END}.${GREEN}\\2${END}\\3"
+    git config --global --list |
+        sed -E "s/${REGEXP}/${REPSTR}/"
+}
+
+# git alias -- list all aliases with formatted output
+# git alias REGEXP -- list only the aliases that match REGEXP
+function alias() {
+    local REGEXP='alias\.(\w+)=(.+)'
+    local REPSTR="${GREEN}\\1${END} = \\2"
+    local FULL_OUTPUT=$(
+        git config --global --list |
+            sed -n -E "s/${REGEXP}/${REPSTR}/p"
+    )
+    if [ -z "$1" ]; then
+        echo "$FULL_OUTPUT"
+    else
+        echo "$FULL_OUTPUT" | awk "\$1 ~ /$1/ {print}"
+    fi
+}
+
+# git lg -- output commit log with pretty formatting
+function lg() {
+    local HASH_PART='%C(magenta)%h%Creset'
+    local REF_PART='%C(red)%d%Creset'
+    local CRED_PART='%C(dim green)(%cr) [%an]'
+    local PRETTY="format:${HASH_PART} -${REF_PART} %s ${CRED_PART}"
+    git log --pretty="$PRETTY" --abbrev-commit "$@"
+}
+
+# git len -- output the last commit message along with its character count
+function len() {
+    local MESSAGE=$(git log -1 $1 --pretty=%B | tr -d '\n')
+    local LENGTH=$(echo -n $MESSAGE | wc -m)
+    echo "$MESSAGE"
+    echo "${YELLOW}(${LENGTH} characters)${END}"
+}
+
+# git cm MESSAGE [FILE] -- validate len(MESSAGE) < 50 && make the commit
+function cm() {
+    local LENGTH=$(echo "$1" | wc -m)
+    if [ $LENGTH -gt 50 ]; then
+        echo >&2 "${RED}Message of length ${LENGTH} exceeds 50 characters," \
+            "commit rejected.${END}"
+    else
+        # If the arguments are bad because of anything other than length,
+        # let Git take care of it
+        git commit -m "$@"
+    fi
+}
