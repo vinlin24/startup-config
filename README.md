@@ -39,6 +39,13 @@ For my particular case, this repository is located under my home directory, at t
 mklink "%USERPROFILE%\.bashrc" "%USERPROFILE%\repos\startup-config\.bashrc"
 ```
 
+An exception was the PowerShell profile `Microsoft.PowerShell_profile.ps1`. Apparently, the PowerShell interpreter cannot resolve symlinks, so I simply replaced the content of the file at `$profile` to source my script in this repository:
+
+```ps1
+<# Delegate startup code to my version-controlled script elsewhere #>
+. "${HOME}\repos\startup-config\Microsoft.PowerShell_profile.ps1"
+```
+
 Original paths, where `~` denotes my `%USERPROFILE%`:
 
 * `~/.bash_profile`
