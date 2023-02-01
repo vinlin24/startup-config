@@ -157,3 +157,28 @@ function prompt_command() {
 export PROMPT_COMMAND=prompt_command
 
 # ---------- above paraphrased from my WSL 12/12/2022 ---------- #
+
+# Run git pull on this repository. IMPORTANT: () instead of {} wrapping function
+# definition means that this function is run in a SUBSHELL. This is to prevent
+# set -e from quitting the entire shell.
+function sync_config() (
+    # Symlink is at this path
+    local SYMLINK_PATH="${BASH_SOURCE[0]}"
+    local THIS_SCRIPT_PATH=$(realpath "$SYMLINK_PATH")
+    local THIS_REPO_PATH=$(dirname "$THIS_SCRIPT_PATH")
+    cd $THIS_REPO_PATH
+    if [ $? -ne 0 ]; then
+        echo >&2 "Failed to change directory to ${THIS_REPO_PATH}."
+        return 1
+    fi
+
+    local BRANCH_TO_PULL="HEAD"
+    # Optionally check out to another branch if specified
+    if [ $# -ne 0 ]; then
+        BRANCH_TO_PULL="$1"
+    fi
+
+    set -e
+    git checkout "$BRANCH_TO_PULL"
+    git pull origin "$BRANCH_TO_PULL"
+)
