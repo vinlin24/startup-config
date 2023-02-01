@@ -61,3 +61,12 @@ function cm() {
         git commit -m "$@"
     fi
 }
+
+# git total -- output the number of commits on a branch, default --all
+function total() {
+    local REF="--all"
+    if [ "$1" ]; then
+        REF="$1"
+    fi
+    git rev-list --count "$REF"
+}

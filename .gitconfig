@@ -46,7 +46,7 @@ history = log --all -E --grep
 
 # Statistics
 len = !"source ~/.gitfuncs; len"
-total = rev-list --count
+total = !"source ~/.gitfuncs; total"
 contribs = shortlog -s -n --all --no-merges
 
 [init]
