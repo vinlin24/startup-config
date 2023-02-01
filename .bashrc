@@ -132,6 +132,13 @@ function get_branch_state() {
 }
 
 function prompt_command() {
+    # Save exit code of last command first thing so it's not overwritten
+    local EXITCODE=$?
+    local errorCode=""
+    if [ $EXITCODE -ne 0 ]; then
+        errorCode=" ↪ ${RED}${EXITCODE}${END}"
+    fi
+
     local venvState=""
     local elbow="${GREEN}\$${END}"
 
@@ -147,7 +154,7 @@ function prompt_command() {
     # Information to display
     local shellInfo="${MAGENTA}${MSYSTEM}${END}"
     local userPath="${GREEN}\u@\h${END} ${shellInfo} ${BLUE}\w${END}"
-    local prompt="${venvState}${userPath}$(get_branch_state)"
+    local prompt="${venvState}${userPath}$(get_branch_state)${errorCode}"
     # Actual line to write on below the info line
     prompt="${prompt}\n${elbow} "
 
