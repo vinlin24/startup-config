@@ -16,7 +16,7 @@ s = status
 staged = diff --staged
 cm = !"source ~/.gitfuncs; cm"
 sync = fetch --all
-ready = !git lg 'HEAD@{u}..HEAD'
+ready = !git fetch origin HEAD && git lg 'HEAD@{u}..HEAD'
 gud = push --set-upstream origin HEAD
 
 # Branches and paths
