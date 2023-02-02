@@ -146,6 +146,42 @@ function get_branch_state() {
     echo "${color}(${DIM}${detached}${END}${color}${branch}${marks})${END}"
 }
 
+# Echo the (colored) part of the prompt describing the state of the currently
+# activated Python virtual environment. Output nothing and exit with error if no
+# virtual environment is currently activated.
+function get_venv_state() {
+    if [ "$VIRTUAL_ENV" ]; then
+        local venv=$(basename $VIRTUAL_ENV)
+        local origin=$(basename $(dirname $VIRTUAL_ENV))
+        local version=$(python --version | awk '{print $2}')
+        echo "${CYAN}(${venv}[${version}]@${origin})${END} "
+        return 0
+    fi
+    return 1
+}
+
+# Output up to the last two (colored) components of the current working
+# directory. This code was paraphrased from ChatGPT.
+function get_abbreviated_cwd() {
+    local cwd=$(pwd)
+
+    # Split the cwd into an array using '/' as the delimiter
+    local cwd_components=(${cwd//\// })
+    # Get the length of the array
+    local length=${#cwd_components[@]}
+
+    if [ $length -le 2 ]; then
+        # Just echo the entire cwd
+        echo "${BLUE}${cwd}${END}"
+    else
+        local second_last="${cwd_components[$((length - 2))]}"
+        local last="${cwd_components[$((length - 1))]}"
+        echo "${BLUE}${second_last}/${last}${END}"
+    fi
+}
+
+# Redefine the shell prompt. Example prompt (real one would be colored):
+# vinlin@Vincent MINGW64 repos/startup-config (main*) ↪ 1
 function prompt_command() {
     # Save exit code of last command first thing so it's not overwritten
     local exit_code=$?
@@ -154,27 +190,27 @@ function prompt_command() {
         error_code=" ↪ ${RED}${exit_code}${END}"
     fi
 
-    local venv_state=""
+    # Basic information to display
+    local shell_info="${MAGENTA}${MSYSTEM}${END}"
+    local user_path="${GREEN}\u@\h${END} ${shell_info} $(get_abbreviated_cwd)"
+
+    # Second line (the line I actually write on)
     local elbow="${GREEN}\$${END}"
 
-    # Check if we're within an activated venv
-    if [ "$VIRTUAL_ENV" ]; then
-        local venv=$(basename $VIRTUAL_ENV)
-        local origin=$(basename $(dirname $VIRTUAL_ENV))
-        local version=$(python --version | awk '{print $2}')
-        venv_state="${CYAN}(${venv}[${version}]@${origin})${END} "
+    # Python venv state
+    local venv_state=$(get_venv_state)
+    if [ "$venv_state" ]; then
+        # Make the elbow color match the venv state color
         elbow="${CYAN}\$${END}"
     fi
 
-    # Information to display
-    local shellInfo="${MAGENTA}${MSYSTEM}${END}"
-    local userPath="${GREEN}\u@\h${END} ${shellInfo} ${BLUE}\w${END}"
+    # Git branch state
     local branch_state=$(get_branch_state)
-    local prompt="${venv_state}${userPath} ${branch_state}${error_code}"
-    # Actual line to write on below the info line
-    prompt="${prompt}\n${elbow} "
 
-    export PS1=$prompt
+    # Final prompt
+    local prompt="${venv_state}${user_path} ${branch_state}${error_code}"
+    prompt+="\n${elbow} "
+    export PS1="$prompt"
 }
 
 export PROMPT_COMMAND=prompt_command
