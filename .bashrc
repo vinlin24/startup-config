@@ -161,22 +161,41 @@ function get_venv_state() {
 }
 
 # Output up to the last two (colored) components of the current working
-# directory. This code was paraphrased from ChatGPT.
+# directory. Also prefix the path with ~ if we're under the home directory. If
+# part of the path between the root (/) or home directory (~) was omitted, use
+# ... in its place. Some of this code was adapted from ChatGPT.
 function get_abbreviated_cwd() {
     local cwd=$(pwd)
 
-    # Split the cwd into an array using '/' as the delimiter
-    local cwd_components=(${cwd//\// })
-    # Get the length of the array
-    local length=${#cwd_components[@]}
+    # AT the home directory
+    if [ "$cwd" = "$HOME" ]; then
+        echo "${BLUE}~${END}"
+        return 0
+    fi
+
+    local subpath="$cwd"
+    local home_prefix="/" # Default at the root
+
+    if [[ $cwd = "$HOME"* ]]; then
+        subpath=${cwd#"$HOME/"}
+        # If we're somewhere under the home directory
+        if [ "$subpath" != "$HOME" ]; then
+            home_prefix="~/"
+        fi
+    fi
+
+    # Split the path into an array using '/' as the delimiter
+    local subpath_components=(${subpath//\// })
+    local length=${#subpath_components[@]}
 
     if [ $length -le 2 ]; then
-        # Just echo the entire cwd
-        echo "${BLUE}${cwd}${END}"
+        # Just echo the entire path
+        echo "${BLUE}${home_prefix}${subpath}${END}"
     else
-        local second_last="${cwd_components[$((length - 2))]}"
-        local last="${cwd_components[$((length - 1))]}"
-        echo "${BLUE}${second_last}/${last}${END}"
+        # Otherwise just the last 2 components, with /.../ abbreviation prefix
+        local second_last="${subpath_components[$((length - 2))]}"
+        local last="${subpath_components[$((length - 1))]}"
+        echo "${BLUE}${home_prefix}.../${second_last}/${last}${END}"
     fi
 }
 
