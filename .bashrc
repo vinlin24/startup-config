@@ -21,6 +21,8 @@ export BLUE=$(tput setaf 4)
 export MAGENTA=$(tput setaf 5)
 export CYAN=$(tput setaf 6)
 export WHITE=$(tput setaf 7)
+export BOLD=$(tput bold)
+export DIM=$(tput dim)
 
 # Meta aliases
 alias rc='code ~/.bashrc'
@@ -79,67 +81,80 @@ function verilog() {
     fi
 }
 
-# ---------- below paraphrased from my WSL 12/12/2022 ---------- #
+###################################################################
+####################    Custom Shell Prompt    ####################
+###################################################################
 
+# Echo the state of the current Git branch, if applicable. The format of the
+# state imitates that of VS Code's branch indicator in the bottom left of the
+# GUI, with markers like *, +, and ! to denote specific status(es) of the
+# working branch.
 function get_branch_state() {
-    local status="$(git status 2>/dev/null)"
 
-    # git error, probably not a repository
-    if [ "$status" = "" ]; then
-        echo ""
+    # Git doesn't have an official API for getting the status of the current
+    # branch, but I can use certain plumbing commands to check for states.
+
+    # Not a repository
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
         return 1
     fi
 
-    # Parse for the other states; color priority: red (conflict) > magenta
-    # (staged) > yellow (modified) > green (clean)
-    local color=$BLACK
+    # The color priority is: GREEN (clean) > RED (conflict) > MAGENTA (staged) >
+    # YELLOW (modified) > BLACK (unknown). These states can occur independently
+    # of each other, so check in reverse order so that the highest takes
+    # precedence. An exception is checking for a clean tree first because if a
+    # tree is clean, we don't need to check anything else.
+
+    local color="$BLACK"
     local marks=""
 
-    # These can occur independently of each other Check in reverse order of
-    # color priority so that highest takes precedence
-    if grep -q "nothing to commit, working tree clean" <<<$status; then
-        color=$GREEN
-    fi
-    if grep -qE "(Changes not staged for commit|Untracked files):" <<<$status; then
-        color=$YELLOW
-        marks="${marks}*"
-    fi
-    if grep -q "Changes to be committed:" <<<$status; then
-        color=$MAGENTA
-        marks="${marks}+"
-    fi
-    if grep -q "fix conflicts" <<<$status; then
-        color=$RED
-        marks="${marks}!"
-    fi
-
-    # Get the branch name if possible
-    local branchName=$(echo "$status" | grep 'On branch' | sed 's/On branch //')
-    local detachedText=""
-    # Probably in detached HEAD mode, use the tag if applicable
-    if [ "$branchName" = "" ]; then
-        branchName=$(echo "$status" | grep 'HEAD detached at' | sed 's/HEAD detached at //')
-        # Use underline instead of blinking bc VS code doesn't support blinking
-        detachedText="$(tput smul)DETACHED$(tput rmul) "
-        # Some other problem, I have no idea
-        if [ "$branchName" = "" ]; then
-            echo ""
-            return 1
+    # CLEAN: working tree is clean
+    if git diff-index --quiet HEAD; then
+        color="$GREEN"
+    else
+        # MODIFIED: unstaged changes
+        if [ -n "$(git diff-files)" ]; then
+            color="$YELLOW"
+            marks+="*"
+        fi
+        # STAGED: staged changes
+        if ! git diff --staged --quiet; then
+            color="$MAGENTA"
+            marks+="+"
+        fi
+        # CONFLICT: merge conflicts
+        if ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+            color="$RED"
+            marks+="!"
         fi
     fi
 
-    echo " ${color}(${detachedText}${branchName}${marks})${END}"
+    # Get the branch name if possible
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+    local detached=""
+
+    # If detached HEAD mode, use the tag if applicable, else abbreviated hash
+    if [ "$branch" = "HEAD" ]; then
+        detached="DETACHED:"
+        branch=$(git describe --tags --exact-match 2>/dev/null)
+        if [ -z "$branch" ]; then
+            branch=$(git rev-parse --short HEAD)
+        fi
+    fi
+
+    # Final colored output
+    echo "${color}(${DIM}${detached}${END}${color}${branch}${marks})${END}"
 }
 
 function prompt_command() {
     # Save exit code of last command first thing so it's not overwritten
-    local EXITCODE=$?
-    local errorCode=""
-    if [ $EXITCODE -ne 0 ]; then
-        errorCode=" ↪ ${RED}${EXITCODE}${END}"
+    local exit_code=$?
+    local error_code=""
+    if [ $exit_code -ne 0 ]; then
+        error_code=" ↪ ${RED}${exit_code}${END}"
     fi
 
-    local venvState=""
+    local venv_state=""
     local elbow="${GREEN}\$${END}"
 
     # Check if we're within an activated venv
@@ -147,14 +162,15 @@ function prompt_command() {
         local venv=$(basename $VIRTUAL_ENV)
         local origin=$(basename $(dirname $VIRTUAL_ENV))
         local version=$(python --version | awk '{print $2}')
-        venvState="${CYAN}(${venv}[${version}]@${origin})${END} "
+        venv_state="${CYAN}(${venv}[${version}]@${origin})${END} "
         elbow="${CYAN}\$${END}"
     fi
 
     # Information to display
     local shellInfo="${MAGENTA}${MSYSTEM}${END}"
     local userPath="${GREEN}\u@\h${END} ${shellInfo} ${BLUE}\w${END}"
-    local prompt="${venvState}${userPath}$(get_branch_state)${errorCode}"
+    local branch_state=$(get_branch_state)
+    local prompt="${venv_state}${userPath} ${branch_state}${error_code}"
     # Actual line to write on below the info line
     prompt="${prompt}\n${elbow} "
 
@@ -163,7 +179,7 @@ function prompt_command() {
 
 export PROMPT_COMMAND=prompt_command
 
-# ---------- above paraphrased from my WSL 12/12/2022 ---------- #
+###################################################################
 
 # Run git pull on this repository. IMPORTANT: () instead of {} wrapping function
 # definition means that this function is run in a SUBSHELL. This is to prevent
