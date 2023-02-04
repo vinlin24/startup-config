@@ -185,7 +185,7 @@ function get_abbreviated_cwd() {
     fi
 
     # Split the path into an array using '/' as the delimiter
-    local subpath_components=(${subpath//\// })
+    IFS='/' read -ra subpath_components <<<"$subpath"
     local length=${#subpath_components[@]}
 
     if [ $length -le 2 ]; then
