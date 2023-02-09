@@ -99,6 +99,12 @@ function get_branch_state() {
         return 1
     fi
 
+    # No commits yet
+    if ! git rev-parse HEAD &>/dev/null; then
+        echo "${BLACK}(<empty>)${END}"
+        return 0
+    fi
+
     # The color priority is: GREEN (clean) > RED (conflict) > MAGENTA (staged) >
     # YELLOW (modified) > BLACK (unknown). These states can occur independently
     # of each other, so check in reverse order so that the highest takes
