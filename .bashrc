@@ -30,6 +30,7 @@ alias refresh='source ~/.bashrc'
 
 # Convenience aliases
 alias activate='source .venv/Scripts/activate'
+alias updatepip='python -m pip install --upgrade pip'
 alias la="ls -A"
 alias ll="ls -Al"
 
