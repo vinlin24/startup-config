@@ -29,7 +29,6 @@ alias rc='code ~/.bashrc'
 alias refresh='source ~/.bashrc'
 
 # Convenience aliases
-alias activate='source .venv/Scripts/activate'
 alias updatepip='python -m pip install --upgrade pip'
 alias la="ls -A"
 alias ll="ls -Al"
@@ -79,6 +78,50 @@ function verilog() {
     else
         echo "$(tput setaf 1)Exited with error$(tput sgr0)"
         return 1
+    fi
+}
+
+function activate() {
+    local venv_folder="$1"
+    if [ -z "$venv_folder" ]; then
+        venv_folder=".venv"
+    fi
+
+    local windows_path="${venv_folder}/Scripts/activate"
+    local posix_path="${venv_folder}/bin/activate"
+
+    local original_cwd=$(pwd)
+    local condition=true
+    while $condition; do
+        if [ -f "$windows_path" ]; then
+            source "$windows_path"
+            cd "$original_cwd"
+            return 0
+        fi
+        if [ -f "$posix_path" ]; then
+            source "$posix_path"
+            cd "$original_cwd"
+            return 0
+        fi
+        if [ $(pwd) = "/" ]; then
+            condition=false
+        else
+            cd ..
+        fi
+    done
+
+    cd "$original_cwd"
+    echo -n "${YELLOW}Could not find a virtual environment directory "
+    echo -n "${venv_folder} in current and parent directories. "
+    echo -n "Create one? [y/N]${END} "
+
+    read -r confirm
+    if [ "$confirm" = "y" ]; then
+        echo "Making virtual environment ${venv_folder} in current directory..."
+        python -m venv "$venv_folder"
+        source "$windows_path" 2>/dev/null || source "$posix_path"
+    else
+        echo "Decided not to create a virtual environment."
     fi
 }
 
