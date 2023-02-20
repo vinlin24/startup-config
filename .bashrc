@@ -224,7 +224,7 @@ function get_abbreviated_cwd() {
     fi
 
     local subpath="$cwd"
-    local home_prefix="/" # Default at the root
+    local home_prefix=""
 
     if [[ $cwd = "$HOME"* ]]; then
         subpath=${cwd#"$HOME/"}
@@ -238,7 +238,8 @@ function get_abbreviated_cwd() {
     IFS='/' read -ra subpath_components <<<"$subpath"
     local length=${#subpath_components[@]}
 
-    if [ $length -le 2 ]; then
+    # For some reason when home_prefix="", the length is one more than expected.
+    if [ $length -le 2 ] || [ -z "$home_prefix" ] && [ $length -le 3 ]; then
         # Just echo the entire path
         echo "${BLUE}${home_prefix}${subpath}${END}"
     else
