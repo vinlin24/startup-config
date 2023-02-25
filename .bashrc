@@ -158,12 +158,15 @@ function get_branch_state() {
     local color="$BLACK"
     local marks=""
 
-    # CLEAN: working tree is clean
-    if git diff-index --quiet HEAD; then
+    test -n "$(git ls-files --others)"
+    has_untracked=$?
+
+    # CLEAN: working tree is clean (including NO untracked files)
+    if git diff-index --quiet HEAD && [ $has_untracked -ne 0 ]; then
         color="$GREEN"
     else
-        # MODIFIED: unstaged changes
-        if [ -n "$(git diff-files)" ]; then
+        # MODIFIED: unstaged changes OR untracked files
+        if [ -n "$(git diff-files)" ] || [ $has_untracked -eq 0 ]; then
             color="$YELLOW"
             marks+="*"
         fi
