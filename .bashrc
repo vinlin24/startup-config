@@ -158,7 +158,7 @@ function get_branch_state() {
     local color="$BLACK"
     local marks=""
 
-    test -n "$(git ls-files --others)"
+    test -n "$(git ls-files --others --exclude-standard)"
     has_untracked=$?
 
     # CLEAN: working tree is clean (including NO untracked files)
