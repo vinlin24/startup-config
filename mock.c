@@ -21,6 +21,9 @@ typedef char allocated_char;
 static allocated_char *
 combine_args(int argc, char const *argv[], size_t *buffer_size)
 {
+    if (argc < 2)
+        return NULL;
+
     size_t length_sum = 0;
     for (int i = 1; i < argc; i++)
         length_sum += strlen(argv[i]);
@@ -49,13 +52,13 @@ static inline char toggle_char(char ch)
 
 int main(int argc, char const *argv[])
 {
-    if (argc < 2)
+    size_t buffer_size;
+    allocated_char *combined = combine_args(argc, argv, &buffer_size);
+    if (combined == NULL)
     {
         fprintf(stderr, "Expected at least one argument.\n");
         return EINVAL;
     }
-    size_t buffer_size;
-    allocated_char *combined = combine_args(argc, argv, &buffer_size);
 
     bool toggle = false;
     for (size_t i = 0; i < buffer_size; i++)
