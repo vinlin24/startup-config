@@ -13,34 +13,16 @@
 #include <stdbool.h>
 #include <errno.h>
 
-/**
- * @brief Reminder that this data is dynamically allocated and must be freed.
- */
-typedef char allocated_char;
-
-static allocated_char *
-combine_args(int argc, char const *argv[], size_t *buffer_size)
+static void
+combine_args(int argc, char const *argv[], char *combined, size_t num_bytes)
 {
-    if (argc < 2)
-        return NULL;
-
-    size_t length_sum = 0;
-    for (int i = 1; i < argc; i++)
-        length_sum += strlen(argv[i]);
-
-    // The lengths of the tokens + number of spaces + null byte.
-    *buffer_size = length_sum + (argc - 2) + 1;
-    char *combined = malloc(*buffer_size * sizeof(char));
-
     strcpy(combined, argv[1]);
     for (int i = 2; i < argc; i++)
     {
         strcat(combined, " ");
         strcat(combined, argv[i]);
     }
-    combined[*buffer_size - 1] = '\0';
-
-    return combined;
+    combined[num_bytes - 1] = '\0';
 }
 
 static inline char toggle_char(char ch)
@@ -52,13 +34,20 @@ static inline char toggle_char(char ch)
 
 int main(int argc, char const *argv[])
 {
-    size_t buffer_size;
-    allocated_char *combined = combine_args(argc, argv, &buffer_size);
-    if (combined == NULL)
+    if (argc < 2)
     {
         fprintf(stderr, "Expected at least one argument.\n");
         return EINVAL;
     }
+
+    size_t length_sum = 0;
+    for (int i = 1; i < argc; i++)
+        length_sum += strlen(argv[i]);
+
+    /* The lengths of the tokens + number of spaces + null character.  */
+    size_t buffer_size = length_sum + (argc - 2) + 1;
+    char *combined = malloc(buffer_size);
+    combine_args(argc, argv, combined, buffer_size);
 
     bool toggle = false;
     for (size_t i = 0; i < buffer_size; i++)
