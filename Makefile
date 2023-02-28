@@ -12,7 +12,7 @@ mock:
 branch_state:
 
 clean:
-	rm -rf *.o __pycache__ mock
+	rm -rf *.exe *.o __pycache__
 
 copy:
 	cp *.exe $(BIN_DIRECTORY)
