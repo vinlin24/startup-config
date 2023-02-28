@@ -59,7 +59,7 @@ Original paths, where `~` denotes my `%USERPROFILE%`:
 ## Standalone Scripts or Binaries
 
 
-For these, copy the script or the corresponding executable (see [Makefile](Makefile)) to a special directory on your `PATH` such that you can invoke it directly at the command line like normal shell commands. For Windows systems, I decided to emulate the `bin` directory of Unix-like filesystems to centralize my custom binaries:
+For these, copy the script or the corresponding executable to a special directory on your `PATH` such that you can invoke it directly at the command line like normal shell commands. For Windows systems, I decided to emulate the `bin` directory of Unix-like filesystems to centralize my custom binaries:
 
 ```sh
 mkdir /c/bin

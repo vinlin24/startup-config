@@ -1,2 +1,14 @@
+# Binary files
 *.o
 *.exe
+__pycache__/
+
+# Personal VS Code workspace settings
+.vscode*/
+*.code-workspace
+
+# Playground for throwaway code
+/temp/
+
+# Universal exception
+!.gitkeep

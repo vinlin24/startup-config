@@ -9,8 +9,6 @@ all:
 
 mock:
 
-branch_state:
-
 clean:
 	rm -rf *.exe *.o __pycache__
 
