@@ -5,6 +5,12 @@ TARGET = prompt
 
 all: $(TARGET)
 
+$(TARGET): prompt.o branch_state.o
+
+prompt.o: prompt.c
+
+branch_state.o: branch_state.c branch_state.h
+
 clean:
 	rm -rf *.exe *.o __pycache__
 

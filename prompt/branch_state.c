@@ -11,14 +11,14 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <errno.h>
 
+#include "branch_state.h"
+
 /* Buffer size constants.  */
 
-#define MAX_BRANCH_LENGTH 100ULL
 #define MAX_LINE_LENGTH 200ULL
 
 /* Function macros for string manipulation.  */
@@ -56,7 +56,7 @@ typedef enum state_t
 
 /* Helper functions.  */
 
-state_t parse_status(FILE *fp, char *branch_name)
+static state_t parse_status(FILE *fp, char *branch_name)
 {
     state_t state = 0x00;
     bool branch_found = false;
@@ -111,7 +111,7 @@ state_t parse_status(FILE *fp, char *branch_name)
     return state;
 }
 
-void get_format(char *buffer, color_t *color, state_t state)
+static void get_format(char *buffer, color_t *color, state_t state)
 {
     buffer[0] = '\0';
     if (state & CLEAN)
@@ -136,30 +136,23 @@ void get_format(char *buffer, color_t *color, state_t state)
     }
 }
 
-/* Main routine.  */
+/* Interface function.  */
 
-int main(int argc, char const *argv[])
+int get_branch_state(char *buffer, size_t buffer_size)
 {
-    /* Excuse to use argc lol.  */
-    if (argc > 1)
-        fprintf(stderr, "%s: Ignoring command line arguments...\n", argv[0]);
-
     FILE *fp;
     fp = popen("git status 2>&1", "r");
+    /* Failed to run `git status`.  */
     if (fp == NULL)
-    {
-        fprintf(stderr, "%s: Failed to run `git status`.\n", argv[0]);
         return EXIT_FAILURE;
-    }
 
     char branch_name[MAX_BRANCH_LENGTH];
     state_t state = parse_status(fp, branch_name);
 
+    /* Some fatal error occurred in parsing the output, or the directory is not
+    a repository.  */
     if (state & FATAL)
-    {
-        fprintf(stderr, "%s: A fatal error occurred.\n", argv[0]);
         return EINVAL;
-    }
 
     char detached_prefix[] = DIM "DETACHED:" END;
     if (!(state & HEAD_DETACHED))
@@ -171,7 +164,8 @@ int main(int argc, char const *argv[])
     get_format(symbols, &color, state);
 
     /* Final output to stdout.  */
-    printf("%s%s%s%s%s\n", detached_prefix, color, branch_name, symbols, END);
+    snprintf(buffer, buffer_size, "%s%s%s%s%s",
+             detached_prefix, color, branch_name, symbols, END);
 
     pclose(fp);
     return EXIT_SUCCESS;
