@@ -9,7 +9,7 @@ $(TARGET): prompt.o branch_state.o
 
 prompt.o: prompt.c
 
-branch_state.o: branch_state.c branch_state.h
+branch_state.o: branch_state.c branch_state.h color.h
 
 clean:
 	rm -rf *.exe *.o __pycache__
