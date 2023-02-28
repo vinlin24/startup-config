@@ -14,7 +14,7 @@ branch_state:
 clean:
 	rm -rf *.o __pycache__ mock
 
-move:
+copy:
 	cp *.exe $(BIN_DIRECTORY)
 
-.PHONY: clean move
+.PHONY: clean copy
