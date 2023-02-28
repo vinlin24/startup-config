@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
 {
     if (argc < 2)
     {
-        fprintf(stderr, "Expected at least one argument.\n");
+        fprintf(stderr, "%s: Expected at least one argument.\n", argv[0]);
         return EINVAL;
     }
 
