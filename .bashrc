@@ -24,6 +24,11 @@ export WHITE=$(tput setaf 7)
 export BOLD=$(tput bold)
 export DIM=$(tput dim)
 
+# C standard exit codes
+export EXIT_SUCCESS=0
+export EXIT_FAILURE=1
+export EINVAL=22
+
 # Meta aliases
 alias rc='code ~/.bashrc'
 alias refresh='source ~/.bashrc'
@@ -277,8 +282,9 @@ function prompt_command() {
         elbow="${CYAN}\$${END}"
     fi
 
-    # Git branch state
-    local branch_state=$(get_branch_state)
+    # Git branch state: use new speedy C program, but fall back to original
+    # script version if it fails for some reason.
+    local branch_state=$(branch_state 2>/dev/null || get_branch_state)
 
     # Final prompt
     local prompt="${venv_state}${user_path} ${branch_state}${error_code}"
