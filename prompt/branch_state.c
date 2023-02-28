@@ -1,13 +1,5 @@
 /**
  * @file branch_state.c
- * @author Vincent Lin (vinlin24@outlook.com)
- * @brief Parse the output of `git status` to determine the state of the current
- * Git repository, if exists.  Print the current branch name colored and
- * suffixed with symbols mimicking the VS Code GUI notation (* for modified, +
- * for staged, etc.).  Written as a performant replacement for my
- * get_branch_state function in my .bashrc, which was a helper for determining
- * what to output for the Git part of my custom shell prompt.
- * @date 2023-02-27
  */
 
 #include <stdio.h>
@@ -140,13 +132,15 @@ static void get_format(char *buffer, color_t *color, state_t state)
 
 int get_branch_state(char *buffer, size_t buffer_size)
 {
+    buffer[0] = '\0';
+
     FILE *fp;
     fp = popen("git status 2>&1", "r");
     /* Failed to run `git status`.  */
     if (fp == NULL)
         return EXIT_FAILURE;
 
-    char branch_name[MAX_BRANCH_LENGTH];
+    char branch_name[MAX_BRANCH_NAME_LENGTH];
     state_t state = parse_status(fp, branch_name);
 
     /* Some fatal error occurred in parsing the output, or the directory is not
