@@ -27,7 +27,7 @@ branch_state.o: branch_state.cpp branch_state.hpp color.hpp strings.hpp subproce
 
 venv_state.o: venv_state.cpp venv_state.hpp color.hpp strings.hpp subprocess.o
 
-user_path.o: user_path.cpp user_path.hpp color.hpp
+user_path.o: user_path.cpp user_path.hpp color.hpp strings.hpp
 
 subprocess.o: subprocess.cpp subprocess.hpp
 
