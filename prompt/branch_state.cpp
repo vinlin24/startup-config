@@ -5,24 +5,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdint>
+
+#include <optional>
+#include <sstream>
 #include <system_error>
 
 #include "branch_state.hpp"
+#include "subprocess.hpp"
 #include "color.h"
 
-#define MAX_LINE_LENGTH 200
-
-#define STARTSWITH(str, sub) (strncmp((str), (sub), strlen((sub))) == 0)
-
 #define AS_BYTE(b) (static_cast<uint8_t>((b)))
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#define POPEN _popen
-#define PCLOSE _pclose
-#else
-#define POPEN popen
-#define PCLOSE pclose
-#endif
 
 namespace State
 {
@@ -60,17 +52,36 @@ struct Format
     color_t color = BLACK;
 };
 
-static State::Value parseStatus(FILE *fp, std::string &branchName)
+static inline bool
+startsWith(std::string const &string, std::string const &prefix)
 {
+    std::size_t pos = string.rfind(prefix, 0);
+    return pos == 0;
+}
+
+static inline std::optional<std::string>
+substringAfter(std::string const &string, std::string const &prefix)
+{
+    std::size_t pos = string.find(prefix);
+    if (pos != std::string::npos)
+        return string.substr(pos + prefix.size());
+    return std::nullopt;
+}
+
+static State::Value parseStatus(std::string &branchName)
+{
+    Subprocess gitStatus("git status 2>&1");
+    std::string const &output = gitStatus.getOutput();
+
     State::Value state = State::Clear;
     bool branchFound = false;
 
-    char line[MAX_LINE_LENGTH];
-    char branch[MAX_BRANCH_NAME_LENGTH];
+    std::istringstream iss(output);
+    std::string line;
 
-    while (fgets(line, sizeof(line), fp) != nullptr)
+    while (std::getline(iss, line))
     {
-        if (STARTSWITH(line, "fatal"))
+        if (startsWith(line, "fatal"))
         {
             state |= State::Fatal;
             return state;
@@ -78,34 +89,39 @@ static State::Value parseStatus(FILE *fp, std::string &branchName)
 
         if (!branchFound)
         {
-            if (sscanf(line, "On branch %s", branch))
+            auto branch = substringAfter(line, "On branch ");
+            if (branch.has_value())
             {
                 branchFound = true;
+                branchName = branch.value();
+                continue;
             }
-            else if (sscanf(line, "HEAD detached at %s", branch))
+            auto ref = substringAfter(line, "HEAD detached at ");
+            if (ref.has_value())
             {
                 branchFound = true;
+                branchName = ref.value();
                 state |= State::HeadDetached;
             }
             continue;
         }
 
-        if (STARTSWITH(line, "nothing to commit"))
+        if (startsWith(line, "nothing to commit"))
         {
             state |= State::Clean;
             break;
         }
 
-        if (STARTSWITH(line, "Changes not staged for commit") ||
-            STARTSWITH(line, "Untracked files"))
+        if (startsWith(line, "Changes not staged for commit") ||
+            startsWith(line, "Untracked files"))
         {
             state |= State::Modified;
         }
-        if (STARTSWITH(line, "Changes to be committed"))
+        if (startsWith(line, "Changes to be committed"))
         {
             state |= State::Staged;
         }
-        if (STARTSWITH(line, "Unmerged paths"))
+        if (startsWith(line, "Unmerged paths"))
         {
             state |= State::Conflict;
         }
@@ -113,8 +129,6 @@ static State::Value parseStatus(FILE *fp, std::string &branchName)
 
     if (!branchFound)
         state |= State::Fatal;
-    else
-        branchName = branch;
 
     return state;
 }
@@ -149,16 +163,8 @@ static Format getFormat(State::Value state)
 
 int getBranchState(std::string &branchState)
 {
-    FILE *fp = POPEN("git status 2>&1", "r");
-
-    /* Failed to run `git status`.  */
-    if (fp == nullptr)
-        return EXIT_FAILURE;
-
     std::string branchName;
-    State::Value state = parseStatus(fp, branchName);
-
-    PCLOSE(fp);
+    State::Value state = parseStatus(branchName);
 
     /* Some fatal error occurred in parsing the output, or the directory is not
     a repository.  */

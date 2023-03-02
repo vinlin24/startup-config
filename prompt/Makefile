@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -pedantic
+CXXFLAGS = -std=c++17 -Wall -Wextra -pedantic
 LDFLAGS = -lstdc++fs
 
 # Supply the DEBUG macro (any value) to compile with debugging information.
@@ -18,12 +18,14 @@ TARGET = prompt
 
 all: $(TARGET)
 
-$(TARGET): prompt.o branch_state.o
+$(TARGET): prompt.o branch_state.o subprocess.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 prompt.o: prompt.cpp
 
 branch_state.o: branch_state.cpp branch_state.hpp color.h
+
+subprocess.o: subprocess.cpp subprocess.hpp
 
 clean:
 	rm -rf *.exe *.o __pycache__
