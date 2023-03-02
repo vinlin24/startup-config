@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "color.hpp"
+#include "strings.hpp"
 #include "subprocess.hpp"
 
 namespace fs = std::filesystem;
@@ -17,7 +18,14 @@ static std::string getPythonVersion(void)
     Subprocess python("python --version 2>&1");
     std::string const &output = python.getOutput();
 
-    return "3.10.7"; // TODO.
+    auto result = substringAfter(output, "Python ");
+    if (!result.has_value())
+        throw std::runtime_error("Failed to parse `python --version`.");
+    std::string &version = result.value();
+
+    /* Strip the trailing newline.  */
+    version.pop_back();
+    return version;
 }
 
 int getVenvState(std::string &venvState)
