@@ -11,7 +11,7 @@
 
 #include "branch_state.hpp"
 #include "subprocess.hpp"
-#include "color.h"
+#include "color.hpp"
 
 #pragma region "Branch State Bit Flags"
 
@@ -146,7 +146,7 @@ static std::optional<Status> parseStatus(void)
 struct Format
 {
     std::string symbols;
-    color_t color = BLACK;
+    Color::ID color = Color::BLACK;
 };
 
 static Format getFormat(State::Value state)
@@ -155,23 +155,23 @@ static Format getFormat(State::Value state)
 
     if (state & State::Clean)
     {
-        format.color = GREEN;
+        format.color = Color::GREEN;
         return format;
     }
     if (state & State::Modified)
     {
         format.symbols.append("*");
-        format.color = YELLOW;
+        format.color = Color::YELLOW;
     }
     if (state & State::Staged)
     {
         format.symbols.append("+");
-        format.color = MAGENTA;
+        format.color = Color::MAGENTA;
     }
     if (state & State::Conflict)
     {
         format.symbols.append("!");
-        format.color = RED;
+        format.color = Color::RED;
     }
 
     return format;
@@ -189,20 +189,23 @@ int getBranchState(std::string &branchState)
     a repository.  */
     if (!result.has_value())
         return EINVAL;
-    Status &status = result.value();
+    Status const &status = result.value();
 
-    std::string detachedPrefix = DIM "DETACHED:" END;
-    if (!(status.state & State::HeadDetached))
-        detachedPrefix = "";
+    /* If the repository is currently in deatched HEAD state, we'll want to
+    include that information in the output.  */
+    using namespace Color;
+    std::string detachedPrefix = "";
+    if (status.state & State::HeadDetached)
+        detachedPrefix = ansi(DIM) + std::string("DETACHED:") + ansi(END);
 
     Format format = getFormat(status.state);
 
     /* echo "${detachedPrefix}${color}${branchName}${symbols}${END}"  */
     branchState += detachedPrefix;
-    branchState += format.color;
+    branchState += ansi(format.color);
     branchState += status.branchName;
     branchState += format.symbols;
-    branchState += END;
+    branchState += ansi(END);
 
     return EXIT_SUCCESS;
 }

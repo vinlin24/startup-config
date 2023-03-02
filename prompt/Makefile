@@ -23,7 +23,7 @@ $(TARGET): prompt.o branch_state.o subprocess.o
 
 prompt.o: prompt.cpp
 
-branch_state.o: branch_state.cpp branch_state.hpp color.h
+branch_state.o: branch_state.cpp branch_state.hpp color.hpp
 
 subprocess.o: subprocess.cpp subprocess.hpp
 
