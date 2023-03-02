@@ -15,18 +15,21 @@
 
 int main(void)
 {
-    std::string branchState;
-    getBranchState(branchState);
-
     std::string venvState;
     getVenvState(venvState);
+    if (!venvState.empty())
+        venvState += " ";
 
     std::string userPath;
     getUserPath(userPath);
+    if (!userPath.empty())
+        userPath += " ";
+
+    std::string branchState;
+    getBranchState(branchState);
 
     /* Line 1: Information to display.  */
-    std::cout << venvState << " " << userPath << " " << branchState
-              << std::endl;
+    std::cout << venvState << userPath << branchState << std::endl;
 
     /* Line 2: Actual line to write on.  */
     std::cout << "$ ";
