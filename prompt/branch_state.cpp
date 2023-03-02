@@ -2,9 +2,9 @@
  * @file branch_state.cpp
  */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdint>
 #include <system_error>
 
 #include "branch_state.hpp"
@@ -14,6 +14,8 @@
 
 #define STARTSWITH(str, sub) (strncmp((str), (sub), strlen((sub))) == 0)
 
+#define AS_BYTE(b) (static_cast<uint8_t>((b)))
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define POPEN _popen
 #define PCLOSE _pclose
@@ -22,16 +24,35 @@
 #define PCLOSE pclose
 #endif
 
-typedef unsigned char state_t;
+namespace State
+{
+    enum Value : uint8_t
+    {
+        Clear = 0,
+        Clean = (1 << 0),
+        Conflict = (1 << 1),
+        Staged = (1 << 2),
+        Modified = (1 << 3),
 
-#define CLEAR static_cast<state_t>(0)
-#define CLEAN static_cast<state_t>(1 << 0)
-#define CONFLICT static_cast<state_t>(1 << 1)
-#define STAGED static_cast<state_t>(1 << 2)
-#define MODIFIED static_cast<state_t>(1 << 3)
+        HeadDetached = (1 << 4),
+        Fatal = (1 << 5),
+    };
 
-#define HEAD_DETACHED static_cast<state_t>(1 << 4)
-#define FATAL static_cast<state_t>(1 << 5)
+    inline State::Value &operator|=(State::Value &a, State::Value b)
+    {
+        return a = static_cast<State::Value>(AS_BYTE(a) | AS_BYTE(b));
+    }
+
+    inline constexpr State::Value operator|(State::Value &a, State::Value &b)
+    {
+        return static_cast<State::Value>(AS_BYTE(a) | AS_BYTE(b));
+    }
+
+    inline constexpr State::Value operator&(State::Value &a, State::Value &b)
+    {
+        return static_cast<State::Value>(AS_BYTE(a) & AS_BYTE(b));
+    }
+}
 
 struct Format
 {
@@ -39,9 +60,9 @@ struct Format
     color_t color = BLACK;
 };
 
-static state_t parseStatus(FILE *fp, std::string &branchName)
+static State::Value parseStatus(FILE *fp, std::string &branchName)
 {
-    state_t state = CLEAR;
+    State::Value state = State::Clear;
     bool branchFound = false;
 
     char line[MAX_LINE_LENGTH];
@@ -51,7 +72,7 @@ static state_t parseStatus(FILE *fp, std::string &branchName)
     {
         if (STARTSWITH(line, "fatal"))
         {
-            state |= FATAL;
+            state |= State::Fatal;
             return state;
         }
 
@@ -64,60 +85,60 @@ static state_t parseStatus(FILE *fp, std::string &branchName)
             else if (sscanf(line, "HEAD detached at %s", branch))
             {
                 branchFound = true;
-                state |= HEAD_DETACHED;
+                state |= State::HeadDetached;
             }
             continue;
         }
 
         if (STARTSWITH(line, "nothing to commit"))
         {
-            state |= CLEAN;
+            state |= State::Clean;
             break;
         }
 
         if (STARTSWITH(line, "Changes not staged for commit") ||
             STARTSWITH(line, "Untracked files"))
         {
-            state |= MODIFIED;
+            state |= State::Modified;
         }
         if (STARTSWITH(line, "Changes to be committed"))
         {
-            state |= STAGED;
+            state |= State::Staged;
         }
         if (STARTSWITH(line, "Unmerged paths"))
         {
-            state |= CONFLICT;
+            state |= State::Conflict;
         }
     }
 
     if (!branchFound)
-        state |= FATAL;
+        state |= State::Fatal;
     else
         branchName = branch;
 
     return state;
 }
 
-static Format getFormat(state_t state)
+static Format getFormat(State::Value state)
 {
     Format format;
 
-    if (state & CLEAN)
+    if (state & State::Clean)
     {
         format.color = GREEN;
         return format;
     }
-    if (state & MODIFIED)
+    if (state & State::Modified)
     {
         format.symbols.append("*");
         format.color = YELLOW;
     }
-    if (state & STAGED)
+    if (state & State::Staged)
     {
         format.symbols.append("+");
         format.color = MAGENTA;
     }
-    if (state & CONFLICT)
+    if (state & State::Conflict)
     {
         format.symbols.append("!");
         format.color = RED;
@@ -135,17 +156,17 @@ int getBranchState(std::string &branchState)
         return EXIT_FAILURE;
 
     std::string branchName;
-    state_t state = parseStatus(fp, branchName);
+    State::Value state = parseStatus(fp, branchName);
 
     PCLOSE(fp);
 
     /* Some fatal error occurred in parsing the output, or the directory is not
     a repository.  */
-    if (state & FATAL)
+    if (state & State::Fatal)
         return EINVAL;
 
     std::string detachedPrefix = DIM "DETACHED:" END;
-    if (!(state & HEAD_DETACHED))
+    if (!(state & State::HeadDetached))
         detachedPrefix = "";
 
     Format format = getFormat(state);
