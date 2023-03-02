@@ -7,7 +7,7 @@
 #include <cstring>
 #include <system_error>
 
-#include "branch_state.h"
+#include "branch_state.hpp"
 #include "color.h"
 
 #define MAX_LINE_LENGTH 200
@@ -22,18 +22,18 @@
 #define PCLOSE pclose
 #endif
 
-#define CLEAR 0
-#define CLEAN (1 << 0)
-#define CONFLICT (1 << 1)
-#define STAGED (1 << 2)
-#define MODIFIED (1 << 3)
-
-#define HEAD_DETACHED (1 << 4)
-#define FATAL (1 << 5)
-
 typedef unsigned char state_t;
 
-static struct Format
+#define CLEAR static_cast<state_t>(0)
+#define CLEAN static_cast<state_t>(1 << 0)
+#define CONFLICT static_cast<state_t>(1 << 1)
+#define STAGED static_cast<state_t>(1 << 2)
+#define MODIFIED static_cast<state_t>(1 << 3)
+
+#define HEAD_DETACHED static_cast<state_t>(1 << 4)
+#define FATAL static_cast<state_t>(1 << 5)
+
+struct Format
 {
     std::string symbols;
     color_t color = BLACK;
@@ -41,7 +41,7 @@ static struct Format
 
 static state_t parseStatus(FILE *fp, std::string &branchName)
 {
-    state_t state = 0x00;
+    state_t state = CLEAR;
     bool branchFound = false;
 
     char line[MAX_LINE_LENGTH];
@@ -105,7 +105,7 @@ static Format getFormat(state_t state)
     if (state & CLEAN)
     {
         format.color = GREEN;
-        return;
+        return format;
     }
     if (state & MODIFIED)
     {
