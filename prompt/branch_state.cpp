@@ -8,11 +8,12 @@
 
 #include <optional>
 #include <sstream>
-#include <system_error>
 
 #include "branch_state.hpp"
 #include "subprocess.hpp"
 #include "color.h"
+
+#pragma region "Branch State Bit Flags"
 
 #define AS_BYTE(b) (static_cast<uint8_t>((b)))
 
@@ -46,11 +47,9 @@ namespace State
     }
 }
 
-struct Format
-{
-    std::string symbols;
-    color_t color = BLACK;
-};
+#pragma endregion "Branch State Bit Flags"
+
+#pragma region "String Helper Functions"
 
 static inline bool
 startsWith(std::string const &string, std::string const &prefix)
@@ -68,14 +67,17 @@ substringAfter(std::string const &string, std::string const &prefix)
     return std::nullopt;
 }
 
+#pragma endregion "String Helper Functions"
+
+#pragma region "Git Status Parsing"
+
 struct Status
 {
     State::Value state;
     std::string branchName;
 };
 
-static std::optional<Status>
-parseStatus(void)
+static std::optional<Status> parseStatus(void)
 {
     Subprocess gitStatus("git status 2>&1");
     std::string const &output = gitStatus.getOutput();
@@ -137,6 +139,16 @@ parseStatus(void)
     return status;
 }
 
+#pragma endregion "Git Status Parsing"
+
+#pragma region "Output Formatting"
+
+struct Format
+{
+    std::string symbols;
+    color_t color = BLACK;
+};
+
 static Format getFormat(State::Value state)
 {
     Format format;
@@ -165,6 +177,10 @@ static Format getFormat(State::Value state)
     return format;
 }
 
+#pragma endregion "Output Formatting"
+
+#pragma region "Interface Function"
+
 int getBranchState(std::string &branchState)
 {
     std::optional<Status> result = parseStatus();
@@ -190,3 +206,5 @@ int getBranchState(std::string &branchState)
 
     return EXIT_SUCCESS;
 }
+
+#pragma endregion "Interface Function"
