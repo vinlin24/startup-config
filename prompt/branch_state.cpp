@@ -10,8 +10,9 @@
 #include <sstream>
 
 #include "branch_state.hpp"
-#include "subprocess.hpp"
 #include "color.hpp"
+#include "strings.hpp"
+#include "subprocess.hpp"
 
 #pragma region "Branch State Bit Flags"
 
@@ -48,26 +49,6 @@ namespace State
 }
 
 #pragma endregion "Branch State Bit Flags"
-
-#pragma region "String Helper Functions"
-
-static inline bool
-startsWith(std::string const &string, std::string const &prefix)
-{
-    std::size_t pos = string.rfind(prefix, 0);
-    return pos == 0;
-}
-
-static inline std::optional<std::string>
-substringAfter(std::string const &string, std::string const &prefix)
-{
-    std::size_t pos = string.find(prefix);
-    if (pos != std::string::npos)
-        return string.substr(pos + prefix.size());
-    return std::nullopt;
-}
-
-#pragma endregion "String Helper Functions"
 
 #pragma region "Git Status Parsing"
 

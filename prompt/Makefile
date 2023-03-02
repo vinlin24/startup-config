@@ -23,9 +23,9 @@ $(TARGET): prompt.o branch_state.o venv_state.o subprocess.o
 
 prompt.o: prompt.cpp
 
-branch_state.o: branch_state.cpp branch_state.hpp color.hpp
+branch_state.o: branch_state.cpp branch_state.hpp color.hpp strings.hpp
 
-venv_state.o: venv_state.cpp venv_state.hpp color.hpp
+venv_state.o: venv_state.cpp venv_state.hpp color.hpp strings.hpp
 
 subprocess.o: subprocess.cpp subprocess.hpp
 
