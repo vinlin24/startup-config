@@ -18,12 +18,14 @@ TARGET = prompt
 
 all: $(TARGET)
 
-$(TARGET): prompt.o branch_state.o subprocess.o
+$(TARGET): prompt.o branch_state.o venv_state.o subprocess.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 prompt.o: prompt.cpp
 
 branch_state.o: branch_state.cpp branch_state.hpp color.hpp
+
+venv_state.o: venv_state.cpp venv_state.hpp color.hpp
 
 subprocess.o: subprocess.cpp subprocess.hpp
 
