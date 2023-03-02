@@ -7,6 +7,7 @@
 #define COLOR_HPP_INCLUDED
 
 #include <stdexcept>
+#include <string>
 
 namespace Color
 {
@@ -51,6 +52,11 @@ namespace Color
         default:
             throw std::invalid_argument("Invalid color");
         }
+    }
+
+    inline std::string wrap(std::string const &string, ID color)
+    {
+        return std::string(ansi(color)) + string + ansi(END);
     }
 }
 
