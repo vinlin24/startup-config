@@ -68,12 +68,19 @@ substringAfter(std::string const &string, std::string const &prefix)
     return std::nullopt;
 }
 
-static State::Value parseStatus(std::string &branchName)
+struct Status
+{
+    State::Value state;
+    std::string branchName;
+};
+
+static std::optional<Status>
+parseStatus(void)
 {
     Subprocess gitStatus("git status 2>&1");
     std::string const &output = gitStatus.getOutput();
 
-    State::Value state = State::Clear;
+    Status status = {State::Clear, ""};
     bool branchFound = false;
 
     std::istringstream iss(output);
@@ -82,10 +89,7 @@ static State::Value parseStatus(std::string &branchName)
     while (std::getline(iss, line))
     {
         if (startsWith(line, "fatal"))
-        {
-            state |= State::Fatal;
-            return state;
-        }
+            return std::nullopt;
 
         if (!branchFound)
         {
@@ -93,44 +97,44 @@ static State::Value parseStatus(std::string &branchName)
             if (branch.has_value())
             {
                 branchFound = true;
-                branchName = branch.value();
+                status.branchName = branch.value();
                 continue;
             }
             auto ref = substringAfter(line, "HEAD detached at ");
             if (ref.has_value())
             {
                 branchFound = true;
-                branchName = ref.value();
-                state |= State::HeadDetached;
+                status.branchName = ref.value();
+                status.state |= State::HeadDetached;
             }
             continue;
         }
 
         if (startsWith(line, "nothing to commit"))
         {
-            state |= State::Clean;
+            status.state |= State::Clean;
             break;
         }
 
         if (startsWith(line, "Changes not staged for commit") ||
             startsWith(line, "Untracked files"))
         {
-            state |= State::Modified;
+            status.state |= State::Modified;
         }
         if (startsWith(line, "Changes to be committed"))
         {
-            state |= State::Staged;
+            status.state |= State::Staged;
         }
         if (startsWith(line, "Unmerged paths"))
         {
-            state |= State::Conflict;
+            status.state |= State::Conflict;
         }
     }
 
     if (!branchFound)
-        state |= State::Fatal;
+        return std::nullopt;
 
-    return state;
+    return status;
 }
 
 static Format getFormat(State::Value state)
@@ -163,24 +167,24 @@ static Format getFormat(State::Value state)
 
 int getBranchState(std::string &branchState)
 {
-    std::string branchName;
-    State::Value state = parseStatus(branchName);
+    std::optional<Status> result = parseStatus();
 
     /* Some fatal error occurred in parsing the output, or the directory is not
     a repository.  */
-    if (state & State::Fatal)
+    if (!result.has_value())
         return EINVAL;
+    Status &status = result.value();
 
     std::string detachedPrefix = DIM "DETACHED:" END;
-    if (!(state & State::HeadDetached))
+    if (!(status.state & State::HeadDetached))
         detachedPrefix = "";
 
-    Format format = getFormat(state);
+    Format format = getFormat(status.state);
 
     /* echo "${detachedPrefix}${color}${branchName}${symbols}${END}"  */
     branchState += detachedPrefix;
     branchState += format.color;
-    branchState += branchName;
+    branchState += status.branchName;
     branchState += format.symbols;
     branchState += END;
 
