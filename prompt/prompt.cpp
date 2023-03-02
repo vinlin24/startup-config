@@ -10,17 +10,26 @@
 #include <string>
 
 #include "branch_state.hpp"
+#include "user_path.hpp"
 #include "venv_state.hpp"
 
 int main(void)
 {
     std::string branchState;
     getBranchState(branchState);
-    std::cout << branchState << std::endl; // TEMP.
 
     std::string venvState;
     getVenvState(venvState);
-    std::cout << venvState << std::endl; // TEMP.
+
+    std::string userPath;
+    getUserPath(userPath);
+
+    /* Line 1: Information to display.  */
+    std::cout << venvState << " " << userPath << " " << branchState
+              << std::endl;
+
+    /* Line 2: Actual line to write on.  */
+    std::cout << "$ ";
 
     return EXIT_SUCCESS;
 }
