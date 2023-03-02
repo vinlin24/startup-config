@@ -1,6 +1,14 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -pedantic -O3
+CXXFLAGS = -Wall -Wextra -pedantic
 LDFLAGS = -lstdc++fs
+
+# Supply the DEBUG macro (any value) to compile with debugging information.
+# Otherwise, the default option of maximum optimization is used.
+ifdef DEBUG
+	CXXFLAGS += -Og -g3
+else
+	CXXFLAGS += -O3
+endif
 
 TARGET = prompt
 
