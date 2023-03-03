@@ -18,5 +18,6 @@ size_t vector_size(vector_t const *v);
 char const *vector_get(vector_t const *v, size_t index);
 bool vector_set(vector_t *v, size_t index, char const *element);
 void vector_append(vector_t *v, char const *element);
+char const *vector_pop(vector_t *v);
 
 #endif // VECTOR_H_INCLUDED

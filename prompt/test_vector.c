@@ -25,5 +25,12 @@ int main(int argc, char const *argv[])
         vector_append(v, argv[i]);
 
     dump_vector(v);
+
+    while (vector_size(v) > 0)
+        printf("Popped string: \"%s\"\n", vector_pop(v));
+
+    dump_vector(v);
+
+    vector_free(v);
     return EXIT_SUCCESS;
 }

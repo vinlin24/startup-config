@@ -67,3 +67,10 @@ void vector_append(vector_t *v, char const *element)
         vector_reallocate(v);
     v->data[v->size++] = element;
 }
+
+char const *vector_pop(vector_t *v)
+{
+    if (v->size == 0)
+        return NULL;
+    return v->data[(v->size--) - 1];
+}
