@@ -1,18 +1,27 @@
 /**
  * @file branch_state.c
+ * @brief Format the Git part of the prompt.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
 #include <errno.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "branch_state.h"
 #include "color.h"
 
 /* Buffer size constants.  */
 
+/* Maximum expected length of a line of Git output, null character included.  */
 #define MAX_LINE_LENGTH 200ULL
+
+/* Maximum expected length of a Git branch name, null character included.  */
+#define MAX_BRANCH_NAME_LENGTH 100ULL
+
+/* Branch name (null character included) + DETACHED prefix + ANSI color
++ all symbols + ANSI reset.  */
+#define MAX_BRANCH_STATE_LENGTH (MAX_BRANCH_NAME_LENGTH + 17 + 5 + 3 + 4 + 1)
 
 /* Function macros for string manipulation.  */
 
@@ -114,20 +123,21 @@ static void get_format(char *buffer, color_t *color, state_t state)
     }
 }
 
-/* Interface function.  */
+/* Main routine.  */
 
-int get_branch_state(char *buffer, size_t buffer_size)
+int main(void)
 {
-    buffer[0] = '\0';
-
-    FILE *fp;
-    fp = popen("git status 2>&1", "r");
+    FILE *fp = popen("git status 2>&1", "r");
     /* Failed to run `git status`.  */
     if (fp == NULL)
         return EXIT_FAILURE;
 
     char branch_name[MAX_BRANCH_NAME_LENGTH];
     state_t state = parse_status(fp, branch_name);
+
+    /* Failed to clean up pipe.  */
+    if (pclose(fp) != EXIT_SUCCESS)
+        return EXIT_FAILURE;
 
     /* Some fatal error occurred in parsing the output, or the directory is not
     a repository.  */
@@ -144,9 +154,8 @@ int get_branch_state(char *buffer, size_t buffer_size)
     get_format(symbols, &color, state);
 
     /* Final output to stdout.  */
-    snprintf(buffer, buffer_size, "%s%s%s%s%s",
-             detached_prefix, color, branch_name, symbols, END);
+    printf("%s%s%s%s%s",
+           detached_prefix, color, branch_name, symbols, END);
 
-    pclose(fp);
     return EXIT_SUCCESS;
 }
