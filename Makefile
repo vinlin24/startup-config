@@ -27,6 +27,8 @@ clean:
 	rm -rf *.exe *.o __pycache__ prompt/*.exe prompt/*.o prompt/__pycache__
 
 copy:
-	cp *.exe prompt/*.exe $(BIN_DIRECTORY)
+	-cp -u *.exe prompt/*.exe $(BIN_DIRECTORY)
+	@echo
+	-ls $(BIN_DIRECTORY)
 
 .PHONY: clean copy
