@@ -19,7 +19,7 @@ branch: prompt/branch_state
 prompt/branch_state: prompt/branch_state.c prompt/color.h
 
 venv: prompt/venv_state
-prompt/venv_state: prompt/venv_state.c prompt/color.h
+prompt/venv_state: prompt/venv_state.c prompt/color.h prompt/vector.c prompt/vector.h
 
 # For testing the vector helper struct.
 vector: prompt/vector

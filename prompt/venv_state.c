@@ -1,5 +1,6 @@
 /**
  * @file venv_state.c
+ * @brief Format the Python virtual environment part of the prompt.
  */
 
 #include <stdio.h>
@@ -7,9 +8,12 @@
 #include <string.h>
 
 #include "color.h"
+#include "vector.h"
 
 #define MAX_OUTPUT_LENGTH 128ULL
 #define MAX_VERSION_LENGTH 16ULL
+
+typedef char const *path_t;
 
 static int get_python_version(char *version, size_t buffer_size)
 {
@@ -45,6 +49,10 @@ static int get_python_version(char *version, size_t buffer_size)
     return status;
 }
 
+static void split_path(path_t path, vector_t *components)
+{
+}
+
 int main(void)
 {
     char const *VIRTUAL_ENV = getenv("VIRTUAL_ENV");
@@ -55,6 +63,12 @@ int main(void)
     if (get_python_version(version, sizeof(version)) != EXIT_SUCCESS)
         return EXIT_FAILURE;
 
+    vector_t *components = vector_init(10);
+    split_path(VIRTUAL_ENV, components);
+
+    /* Final formatted output to stdout.  */
     printf("%s%s%s", CYAN, version, END);
+
+    vector_free(components);
     return EXIT_SUCCESS;
 }
