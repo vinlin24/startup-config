@@ -1,5 +1,11 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -O3
+CFLAGS = -Wall -Wextra -pedantic
+
+ifdef DEBUG
+	CFLAGS += -Og -g3
+else
+	CFLAGS += -O3
+endif
 
 BIN_DIRECTORY = /c/bin
 
