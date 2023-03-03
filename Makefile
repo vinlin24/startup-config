@@ -16,12 +16,14 @@ all:
 mock:
 
 branch: prompt/branch_state
-
-venv: prompt/venv_state
-
 prompt/branch_state: prompt/branch_state.c prompt/color.h
 
+venv: prompt/venv_state
 prompt/venv_state: prompt/venv_state.c prompt/color.h
+
+# For testing the vector helper struct.
+vector: prompt/vector
+prompt/vector: prompt/test_vector.c prompt/vector.c prompt/vector.h
 
 clean:
 	rm -rf *.exe *.o __pycache__ prompt/*.exe prompt/*.o prompt/__pycache__
