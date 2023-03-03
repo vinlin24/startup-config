@@ -9,10 +9,18 @@ all:
 
 mock:
 
+branch: prompt/branch_state
+
+venv: prompt/venv_state
+
+prompt/branch_state: prompt/branch_state.c prompt/color.h
+
+prompt/venv_state: prompt/venv_state.c prompt/color.h
+
 clean:
-	rm -rf *.exe *.o __pycache__
+	rm -rf *.exe *.o __pycache__ prompt/*.exe prompt/*.o prompt/__pycache__
 
 copy:
-	cp *.exe $(BIN_DIRECTORY)
+	cp *.exe prompt/*.exe $(BIN_DIRECTORY)
 
 .PHONY: clean copy
