@@ -1,7 +1,10 @@
 # Binary files
 *.o
 *.exe
+
+# Python
 __pycache__/
+.venv/
 
 # Personal VS Code workspace settings
 .vscode*/
