@@ -37,10 +37,6 @@ alias refresh='source ~/.bashrc'
 alias updatepip='python -m pip install --upgrade pip'
 alias la="ls -A"
 alias ll="ls -Al"
-alias .="ls"
-alias ..="cd .."
-alias ...="cd ../.."
-alias ~="cd ~"
 
 # Partials of existing commands
 alias grep="grep --color=auto"
@@ -134,11 +130,6 @@ function activate() {
     fi
 }
 
-function resolve() {
-    local name="$1"
-    readlink -f $(which "$name")
-}
-
 ###################################################################
 ####################    Custom Shell Prompt    ####################
 ###################################################################
@@ -227,46 +218,6 @@ function get_venv_state() {
     return 1
 }
 
-# Output up to the last two (colored) components of the current working
-# directory. Also prefix the path with ~ if we're under the home directory. If
-# part of the path between the root (/) or home directory (~) was omitted, use
-# ... in its place. Some of this code was adapted from ChatGPT.
-function get_abbreviated_cwd() {
-    local cwd=$(pwd)
-
-    # AT the home directory
-    if [ "$cwd" = "$HOME" ]; then
-        echo "${BLUE}~${END}"
-        return 0
-    fi
-
-    local subpath="$cwd"
-    local home_prefix=""
-
-    if [[ $cwd = "$HOME"* ]]; then
-        subpath=${cwd#"$HOME/"}
-        # If we're somewhere under the home directory
-        if [ "$subpath" != "$HOME" ]; then
-            home_prefix="~/"
-        fi
-    fi
-
-    # Split the path into an array using '/' as the delimiter
-    IFS='/' read -ra subpath_components <<<"$subpath"
-    local length=${#subpath_components[@]}
-
-    # For some reason when home_prefix="", the length is one more than expected.
-    if [ $length -le 2 ] || [ -z "$home_prefix" ] && [ $length -le 3 ]; then
-        # Just echo the entire path
-        echo "${BLUE}${home_prefix}${subpath}${END}"
-    else
-        # Otherwise just the last 2 components, with /.../ abbreviation prefix
-        local second_last="${subpath_components[$((length - 2))]}"
-        local last="${subpath_components[$((length - 1))]}"
-        echo "${BLUE}${home_prefix}.../${second_last}/${last}${END}"
-    fi
-}
-
 # Redefine the shell prompt. Example prompt (real one would be colored):
 # vinlin@Vincent MINGW64 repos/startup-config (main*) ↪ 1
 function prompt_command() {
@@ -279,7 +230,7 @@ function prompt_command() {
 
     # Basic information to display
     local shell_info="${MAGENTA}${MSYSTEM}${END}"
-    local user_path="${GREEN}\u@\h${END} ${shell_info} $(get_abbreviated_cwd)"
+    local user_path="${GREEN}\u@\h${END} ${shell_info} ${BLUE}\w${END}"
 
     # Second line (the line I actually write on)
     local elbow="${GREEN}\$${END}"
@@ -301,6 +252,7 @@ function prompt_command() {
     export PS1="$prompt"
 }
 
+export PROMPT_DIRTRIM=2
 export PROMPT_COMMAND=prompt_command
 
 ###################################################################
