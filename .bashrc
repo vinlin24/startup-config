@@ -236,8 +236,9 @@ function prompt_command() {
     local elbow="${GREEN}\$${END}"
 
     # Python venv state
-    local venv_state=$(get_venv_state)
+    local venv_state=$(venv_state 2>/dev/null || get_venv_state)
     if [ "$venv_state" ]; then
+        venv_state+=" "
         # Make the elbow color match the venv state color
         elbow="${CYAN}\$${END}"
     fi
