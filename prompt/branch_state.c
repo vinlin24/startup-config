@@ -34,10 +34,11 @@ typedef enum state_t
     CLEAN = 1 << 0,
     CONFLICT = 1 << 1,
     STAGED = 1 << 2,
-    MODIFIED = 1 << 3,
+    UNTRACKED = 1 << 3,
+    MODIFIED = 1 << 4,
 
-    HEAD_DETACHED = 1 << 4,
-    FATAL = 1 << 5,
+    HEAD_DETACHED = 1 << 5,
+    FATAL = 1 << 6,
 
 } state_t;
 
@@ -77,19 +78,14 @@ static state_t parse_status(FILE *fp, char *branch_name)
             break;
         }
 
-        if (STARTSWITH(line_buffer, "Changes not staged for commit") ||
-            STARTSWITH(line_buffer, "Untracked files"))
-        {
+        if (STARTSWITH(line_buffer, "Changes not staged for commit"))
             state |= MODIFIED;
-        }
+        if (STARTSWITH(line_buffer, "Untracked files"))
+            state |= UNTRACKED;
         if (STARTSWITH(line_buffer, "Changes to be committed"))
-        {
             state |= STAGED;
-        }
         if (STARTSWITH(line_buffer, "Unmerged paths"))
-        {
             state |= CONFLICT;
-        }
     }
 
     if (!branch_found)
@@ -109,6 +105,11 @@ static void get_format(char *buffer, color_t *color, state_t state)
     if (state & MODIFIED)
     {
         strcat(buffer, "*");
+        *color = YELLOW;
+    }
+    if (state & UNTRACKED)
+    {
+        strcat(buffer, "%");
         *color = YELLOW;
     }
     if (state & STAGED)
@@ -148,8 +149,8 @@ int main(void)
     if (!(state & HEAD_DETACHED))
         detached_prefix[0] = '\0';
 
-    /* Zero or more of *, +, !.  Includes the null character.  */
-    char symbols[4] = "";
+    /* Zero or more of *, +, %, !.  Includes the null character.  */
+    char symbols[5] = "";
     color_t color = BLACK;
     get_format(symbols, &color, state);
 
