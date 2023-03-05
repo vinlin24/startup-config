@@ -17,71 +17,94 @@
 
 #define toggle_case(ch) (isupper((ch)) ? tolower((ch)) : toupper((ch)))
 
+#define double_string(heap_string, current_capacity)                 \
+    do                                                               \
+    {                                                                \
+        *(current_capacity) = (*(current_capacity) + 1) * 2;         \
+        (heap_string) = realloc((heap_string), *(current_capacity)); \
+    } while (0)
+
 static void
-combine_args(int argc, char const *argv[], char *combined, size_t num_bytes)
+mock_tokens(char const *tokens[], size_t num_tokens,
+            char *heap_string, size_t *current_capacity)
 {
-    strcpy(combined, argv[1]);
-    for (int i = 2; i < argc; i++)
+    size_t pos = 0;
+    bool toggle = false;
+
+    for (size_t i = 0; i < num_tokens; i++)
     {
-        strcat(combined, " ");
-        strcat(combined, argv[i]);
+        char const *token = tokens[i];
+
+        size_t j = 0;
+        char ch = token[j];
+        while (ch != '\0')
+        {
+            if (pos == *current_capacity)
+                double_string(heap_string, current_capacity);
+
+            heap_string[pos] = ch;
+            if (isalpha(ch))
+            {
+                heap_string[pos] = toggle ? toggle_case(ch) : ch;
+                toggle = !toggle;
+            }
+            ch = token[++j];
+            pos++;
+        }
+
+        if (pos == *current_capacity)
+            double_string(heap_string, current_capacity);
+        heap_string[pos++] = ' ';
     }
-    combined[num_bytes - 1] = '\0';
+
+    /* Since we're using values from argv, the user's final newline when hitting
+    RETURN at the command line isn't included.  Thus, we account for that here
+    by capping the C string with both a newline and the null character.  */
+    if (pos == *current_capacity)
+        realloc(heap_string, (*current_capacity += 2));
+
+    heap_string[pos] = '\n';
+    heap_string[pos + 1] = '\0';
 }
 
 static void
-read_from_stdin(char *heap_string, size_t *current_capacity)
+mock_stdin(char *heap_string, size_t *current_capacity)
 {
     size_t pos = 0;
+    bool toggle = false;
+
     int ch;
     while ((ch = getchar()) != EOF)
     {
         if (pos == *current_capacity)
+            double_string(heap_string, current_capacity);
+
+        heap_string[pos] = ch;
+        if (isalpha(ch))
         {
-            *current_capacity = (*current_capacity + 1) * 2;
-            realloc(heap_string, *current_capacity);
+            heap_string[pos] = (char)(toggle ? toggle_case(ch) : ch);
+            toggle = !toggle;
         }
-        heap_string[pos++] = ch;
+        pos++;
     }
 
     if (pos == *current_capacity)
-        realloc(heap_string, *current_capacity + 1);
+        realloc(heap_string, ++(*current_capacity));
     heap_string[pos] = '\0';
 }
 
 int main(int argc, char const *argv[])
 {
+    size_t buffer_size = BUFFER_SIZE;
+    char *result = malloc(buffer_size);
+
     if (argc < 2)
-    {
-        fprintf(stderr, "%s: Reading from stdin: ", argv[0]);
-        size_t current_size = BUFFER_SIZE;
-        char *heap_string = malloc(current_size);
-        read_from_stdin(heap_string, &current_size);
-        printf("%s\n", heap_string);
-        return EXIT_SUCCESS;
-    }
+        mock_stdin(result, &buffer_size);
+    else
+        mock_tokens(&argv[1], argc - 1, result, &buffer_size);
 
-    size_t length_sum = 0;
-    for (int i = 1; i < argc; i++)
-        length_sum += strlen(argv[i]);
+    printf(result);
 
-    /* The lengths of the tokens + number of spaces + null character.  */
-    size_t buffer_size = length_sum + (argc - 2) + 1;
-    char *combined = malloc(buffer_size);
-    combine_args(argc, argv, combined, buffer_size);
-
-    bool toggle = false;
-    for (size_t i = 0; i < buffer_size; i++)
-    {
-        char current_char = combined[i];
-        if (isalpha(current_char))
-        {
-            combined[i] = toggle ? toggle_case(current_char) : current_char;
-            toggle = !toggle;
-        }
-    }
-    printf("%s\n", combined);
-
-    free(combined);
+    free(result);
     return EXIT_SUCCESS;
 }
