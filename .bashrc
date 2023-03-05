@@ -130,6 +130,41 @@ function activate() {
     fi
 }
 
+# Repeatedly run the `time` command and average the values.
+function avg_time() {
+    if [ $# -lt 2 ]; then
+        echo >&2 "USAGE: avg_time NUM_TRIALS COMMAND..."
+        return 1
+    fi
+
+    local num_trials=$1
+    # Discard the first (num_trials) argument and take the rest as the command.
+    shift
+    local argv=("$@")
+
+    local total_real="0"
+    local total_user="0"
+    local total_sys="0"
+    for trial_num in $(seq 1 $num_trials); do
+        local output=$({ time -p "$argv" >/dev/null; } 2>&1)
+        local real_secs=$(echo "$output" | sed '1q;d' | awk '{print $2}')
+        local user_secs=$(echo "$output" | sed '2q;d' | awk '{print $2}')
+        local sys_secs=$(echo "$output" | sed '3q;d' | awk '{print $2}')
+
+        total_real=$(awk "BEGIN {printf \"%.3f\", ${total_real}+${real_secs}}")
+        total_user=$(awk "BEGIN {printf \"%.3f\", ${total_user}+${user_secs}}")
+        total_sys=$(awk "BEGIN {printf \"%.3f\", ${total_sys}+${sys_secs}}")
+    done
+
+    local avg_real=$(awk "BEGIN {printf \"%.3f\", ${total_real}/${num_trials}}")
+    local avg_user=$(awk "BEGIN {printf \"%.3f\", ${total_user}/${num_trials}}")
+    local avg_sys=$(awk "BEGIN {printf \"%.3f\", ${total_sys}/${num_trials}}")
+
+    echo "Average real: ${avg_real}"
+    echo "Average user: ${avg_user}"
+    echo "Average sys:  ${avg_sys}"
+}
+
 ###################################################################
 ####################    Custom Shell Prompt    ####################
 ###################################################################
