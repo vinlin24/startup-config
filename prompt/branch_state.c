@@ -42,11 +42,20 @@ typedef enum state_t
 
 } state_t;
 
+typedef struct status_t
+{
+    char branch_name[MAX_BRANCH_NAME_LENGTH];
+    state_t state;
+} status_t;
+
 /* Helper functions.  */
 
-static state_t parse_status(FILE *fp, char *branch_name)
+static status_t parse_status(FILE *fp)
 {
-    state_t state = 0x00;
+    status_t status;
+    status.branch_name[0] = '\0';
+    status.state = 0x00;
+
     bool branch_found = false;
 
     char line_buffer[MAX_LINE_LENGTH];
@@ -54,44 +63,46 @@ static state_t parse_status(FILE *fp, char *branch_name)
     {
         if (STARTSWITH(line_buffer, "fatal"))
         {
-            state |= FATAL;
-            return state;
+            status.state |= FATAL;
+            return status;
         }
 
         if (!branch_found)
         {
-            if (sscanf(line_buffer, "On branch %s", branch_name))
+            if (sscanf(line_buffer, "On branch %s",
+                       status.branch_name))
             {
                 branch_found = true;
             }
-            else if (sscanf(line_buffer, "HEAD detached at %s", branch_name))
+            else if (sscanf(line_buffer, "HEAD detached at %s",
+                            status.branch_name))
             {
                 branch_found = true;
-                state |= HEAD_DETACHED;
+                status.state |= HEAD_DETACHED;
             }
             continue;
         }
 
         if (STARTSWITH(line_buffer, "nothing to commit"))
         {
-            state |= CLEAN;
+            status.state |= CLEAN;
             break;
         }
 
         if (STARTSWITH(line_buffer, "Changes not staged for commit"))
-            state |= MODIFIED;
+            status.state |= MODIFIED;
         if (STARTSWITH(line_buffer, "Untracked files"))
-            state |= UNTRACKED;
+            status.state |= UNTRACKED;
         if (STARTSWITH(line_buffer, "Changes to be committed"))
-            state |= STAGED;
+            status.state |= STAGED;
         if (STARTSWITH(line_buffer, "Unmerged paths"))
-            state |= CONFLICT;
+            status.state |= CONFLICT;
     }
 
     if (!branch_found)
-        state |= FATAL;
+        status.state |= FATAL;
 
-    return state;
+    return status;
 }
 
 static void get_format(char *buffer, color_t *color, state_t state)
@@ -133,8 +144,7 @@ int main(void)
     if (fp == NULL)
         return EXIT_FAILURE;
 
-    char branch_name[MAX_BRANCH_NAME_LENGTH];
-    state_t state = parse_status(fp, branch_name);
+    status_t status = parse_status(fp);
 
     /* Failed to clean up pipe.  */
     if (pclose(fp) != EXIT_SUCCESS)
@@ -142,21 +152,21 @@ int main(void)
 
     /* Some fatal error occurred in parsing the output, or the directory is not
     a repository.  */
-    if (state & FATAL)
+    if (status.state & FATAL)
         return EINVAL;
 
     char detached_prefix[] = DIM "DETACHED:" END;
-    if (!(state & HEAD_DETACHED))
+    if (!(status.state & HEAD_DETACHED))
         detached_prefix[0] = '\0';
 
     /* Zero or more of *, +, %, !.  Includes the null character.  */
     char symbols[5] = "";
     color_t color = BLACK;
-    get_format(symbols, &color, state);
+    get_format(symbols, &color, status.state);
 
     /* Final output to stdout.  */
     printf("%s%s%s%s%s",
-           detached_prefix, color, branch_name, symbols, END);
+           detached_prefix, color, status.branch_name, symbols, END);
 
     return EXIT_SUCCESS;
 }
