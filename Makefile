@@ -13,6 +13,8 @@ CXXFLAGS = -std=c++17 $(CFLAGS)
 
 BIN_DIRECTORY = /c/bin
 
+PATH_SCRIPTS = snippet
+
 all:
 	@echo >&2 Specify a make target.
 	@exit 1
@@ -35,7 +37,7 @@ clean:
 	rm -rf *.exe *.o __pycache__ prompt/*.exe prompt/*.o prompt/__pycache__
 
 copy:
-	-cp -u *.exe prompt/*.exe $(BIN_DIRECTORY)
+	-cp -u *.exe prompt/*.exe $(PATH_SCRIPTS) $(BIN_DIRECTORY)
 	@echo
 	-ls $(BIN_DIRECTORY)
 
