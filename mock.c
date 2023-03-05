@@ -6,12 +6,14 @@
  * @date 2023-02-27
  */
 
+#include <ctype.h>
+#include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <stdbool.h>
-#include <errno.h>
+
+#define toggle_case(ch) (isupper((ch)) ? tolower((ch)) : toupper((ch)))
 
 static void
 combine_args(int argc, char const *argv[], char *combined, size_t num_bytes)
@@ -23,13 +25,6 @@ combine_args(int argc, char const *argv[], char *combined, size_t num_bytes)
         strcat(combined, argv[i]);
     }
     combined[num_bytes - 1] = '\0';
-}
-
-static inline char toggle_char(char ch)
-{
-    if (isupper(ch))
-        return tolower(ch);
-    return toupper(ch);
 }
 
 int main(int argc, char const *argv[])
@@ -55,7 +50,7 @@ int main(int argc, char const *argv[])
         char current_char = combined[i];
         if (isalpha(current_char))
         {
-            combined[i] = toggle ? toggle_char(current_char) : current_char;
+            combined[i] = toggle ? toggle_case(current_char) : current_char;
             toggle = !toggle;
         }
     }
