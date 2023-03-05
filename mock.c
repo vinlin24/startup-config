@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BUFFER_SIZE 1024
+
 #define toggle_case(ch) (isupper((ch)) ? tolower((ch)) : toupper((ch)))
 
 static void
@@ -27,12 +29,36 @@ combine_args(int argc, char const *argv[], char *combined, size_t num_bytes)
     combined[num_bytes - 1] = '\0';
 }
 
+static void
+read_from_stdin(char *heap_string, size_t *current_capacity)
+{
+    size_t pos = 0;
+    int ch;
+    while ((ch = getchar()) != EOF)
+    {
+        if (pos == *current_capacity)
+        {
+            *current_capacity = (*current_capacity + 1) * 2;
+            realloc(heap_string, *current_capacity);
+        }
+        heap_string[pos++] = ch;
+    }
+
+    if (pos == *current_capacity)
+        realloc(heap_string, *current_capacity + 1);
+    heap_string[pos] = '\0';
+}
+
 int main(int argc, char const *argv[])
 {
     if (argc < 2)
     {
-        fprintf(stderr, "%s: Expected at least one argument.\n", argv[0]);
-        return EINVAL;
+        fprintf(stderr, "%s: Reading from stdin: ", argv[0]);
+        size_t current_size = BUFFER_SIZE;
+        char *heap_string = malloc(current_size);
+        read_from_stdin(heap_string, &current_size);
+        printf("%s\n", heap_string);
+        return EXIT_SUCCESS;
     }
 
     size_t length_sum = 0;
