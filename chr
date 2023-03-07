@@ -43,8 +43,18 @@ def validate_int(value: str) -> int:
 
 parser = ArgumentParser(prog=Path(sys.argv[0]).name,
                         description=DESCRIPTION)
+
 parser.add_argument("codes", metavar="CODE", nargs="*", type=validate_int,
                     help="TODO.")
+
+sep_group = parser.add_mutually_exclusive_group()
+
+sep_group.add_argument("-d", "--delimiter", metavar="DELIM", default=" ",
+                       help="string to use between each character")
+sep_group.add_argument("-t", "--tabs", action="store_true",
+                       help="use TAB as the delimiter")
+sep_group.add_argument("-1", dest="one_per_line", action="store_true",
+                       help="print each entry on its own line")
 
 
 def codes_from_stdin() -> list[int]:
@@ -64,7 +74,18 @@ def main() -> None:
     if not codes:
         codes = codes_from_stdin()
 
-    output = " ".join(chr(code) for code in codes)
+    delimiter: str = namespace.delimiter
+    tabs: bool = namespace.tabs
+    if tabs:
+        delimiter = "\t"
+
+    one_per_line: bool = namespace.one_per_line
+    # TEMP: Will have to handle this differently like in ord when we
+    # implement echoing.
+    if one_per_line:
+        delimiter = "\n"
+
+    output = delimiter.join(chr(code) for code in codes)
     print(output)
 
 
