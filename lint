@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+if [ $# -lt 1 ]; then
+    script_name=$(basename $0)
+    echo >&2 "USAGE: ${script_name} FILE..."
+    exit 22
+fi
+
+err=0
+
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+END=$(tput sgr0)
+
+for filename in "$@"; do
+    # Automatically skip non-existent files as well as directories.
+    if [ ! -e "$filename" ] || [ -d "$filename" ]; then
+        continue
+    fi
+
+    lines_too_wide=$(awk 'length > 80' "$filename")
+    if [ -n "$lines_too_wide" ]; then
+        echo >&2 "${RED}${filename}: Exceeding 80 characters in width:${END}"
+        echo >&2 "$lines_too_wide"
+        echo >&2
+        err=1
+    fi
+
+    lines_non_ascii=$(grep -P -n "[\x80-\xFF]" "$filename")
+    if [ -n "$lines_non_ascii" ]; then
+        echo >&2 "${RED}${filename}: Containing a non-ASCII character(s):${END}"
+        echo >&2 "$lines_non_ascii"
+        echo >&2
+    fi
+done
+
+exit $err
