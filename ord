@@ -78,32 +78,33 @@ def escaped(ch: str) -> str:
 
 
 def print_one_per_line(string: str, echo: bool,
-                       format_char: Callable[[str], str]
+                       char_formatter: Callable[[str], str]
                        ) -> None:
     """Handle the case where each result goes on a separate line."""
     if echo:
         def format_line(ch: str, /) -> str:
             # Width: accommodate (text) escape sequences e.g. \n, \t
-            return f"{escaped(ch).rjust(2)} {format_char(ch)}"
+            return f"{escaped(ch).rjust(2)} {char_formatter(ch)}"
     else:
-        format_line = format_char
+        format_line = char_formatter
     lines = "\n".join(format_line(ch) for ch in string)
     print(lines)
 
 
-def main() -> None:
-    """Main driver function."""
-    namespace = parser.parse_args()
+def get_char_formatting(namespace: Namespace
+                        ) -> tuple[Callable[[str], str], str, int]:
+    """
+    Parse the options to construct a function that will take a character
+    and format it with the appropriate code point value as well as
+    prefix and spacing.  Also return this prefix and fill width.
 
-    string: str | None = namespace.string
-    if string is None:
-        string = sys.stdin.read()
-
+    Returns:
+        tuple[Callable[[str], str], str, int]: A 3-tuple containing the
+        char formatter function, the radix prefix, and fill width.
+    """
     prefixed: bool = namespace.prefixed
-    echo: bool = namespace.echo
     uppercase: bool = namespace.uppercase or namespace.X
     combined: bool = namespace.combined
-    one_per_line: bool = namespace.one_per_line
 
     match namespace:
         # TODO: The fill widths below only work assuming all input
@@ -127,7 +128,7 @@ def main() -> None:
             prefix = ""
             width = 3
 
-    def format_char(ch: str, /) -> str:
+    def char_formatter(ch: str, /) -> str:
         code = ord(ch)
         casted = caster(code).removeprefix(prefix).zfill(width)
         if uppercase:
@@ -138,12 +139,30 @@ def main() -> None:
             return casted
         return (prefix if prefixed else "") + casted
 
+    return char_formatter, prefix, width
+
+
+def main() -> None:
+    """Main driver function."""
+    namespace = parser.parse_args()
+
+    string: str | None = namespace.string
+    if string is None:
+        string = sys.stdin.read()
+
+    prefixed: bool = namespace.prefixed
+    echo: bool = namespace.echo
+    combined: bool = namespace.combined
+    one_per_line: bool = namespace.one_per_line
+
+    char_formatter, prefix, width = get_char_formatting(namespace)
+
     if one_per_line:
-        print_one_per_line(string, echo, format_char)
+        print_one_per_line(string, echo, char_formatter)
         return
 
     delimiter = "" if combined else " "
-    output = delimiter.join(format_char(ch) for ch in string)
+    output = delimiter.join(char_formatter(ch) for ch in string)
     if combined and prefixed:
         output = prefix + output
 
