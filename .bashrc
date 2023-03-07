@@ -33,16 +33,16 @@ export EINVAL=22
 alias rc='code ~/.bashrc'
 alias refresh='source ~/.bashrc'
 
-# Convenience aliases
+# Convenience aliases/partials of existing commands
 alias updatepip='python -m pip install --upgrade pip'
 alias la="ls -A"
 alias ll="ls -Al"
-
-# Partials of existing commands
 alias grep="grep --color=auto"
 alias egrep="grep --color=auto -E"
 alias diff="diff --color=auto"
 alias udiff="diff --color=auto -u"
+alias mime-type="file -b --mime-type"
+alias mime-encoding="file -b --mime-encoding"
 
 # Connect to UCLA Engineering lnxsrv NUM, default 15.
 function seas() {
