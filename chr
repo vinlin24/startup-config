@@ -64,7 +64,8 @@ def main() -> None:
     if not codes:
         codes = codes_from_stdin()
 
-    print(codes)
+    output = " ".join(chr(code) for code in codes)
+    print(output)
 
 
 if __name__ == "__main__":
