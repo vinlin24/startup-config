@@ -47,6 +47,9 @@ parser = ArgumentParser(prog=Path(sys.argv[0]).name,
 parser.add_argument("codes", metavar="CODE", nargs="*", type=validate_int,
                     help="TODO.")
 
+parser.add_argument("-e", "--echo", action="store_true",
+                    help="print the original code points alongside")
+
 sep_group = parser.add_mutually_exclusive_group()
 
 sep_group.add_argument("-d", "--delimiter", metavar="DELIM", default=" ",
@@ -66,6 +69,21 @@ def codes_from_stdin() -> list[int]:
         parser.error(f"invalid validate_int value: {invalid_token}")
 
 
+def escaped(ch: str) -> str:
+    r"""
+    Return a string representation that can be safely printed without
+    messing up formatting.
+
+    NOTE: len(escaped(ch)) may not necessarily be 1.  This is true for
+    characters that have an escape sequence representation like \n or
+    \x1e.
+    """
+    safe = repr(ch).strip("'\"")
+    if safe == " ":
+        return "SPC"  # TODO: What if they want the actual space?
+    return repr(ch).strip("'\"")
+
+
 def main() -> None:
     """Main driver function."""
     namespace = parser.parse_args()
@@ -73,6 +91,8 @@ def main() -> None:
     codes: list[int] = namespace.codes
     if not codes:
         codes = codes_from_stdin()
+
+    echo: bool = namespace.echo
 
     delimiter: str = namespace.delimiter
     tabs: bool = namespace.tabs
@@ -85,7 +105,8 @@ def main() -> None:
     if one_per_line:
         delimiter = "\n"
 
-    output = delimiter.join(chr(code) for code in codes)
+    output = delimiter.join(escaped(chr(code)) for code in codes)
+
     print(output)
 
 
