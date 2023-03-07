@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""chr
+
+TODO.
+"""
+
+import sys
+from argparse import ArgumentParser, ArgumentTypeError
+from pathlib import Path
+
+__author__ = "Vincent Lin"
+
+DESCRIPTION = """\
+TODO.
+"""
+
+
+def validate_int(value: str) -> int:
+    """
+    Validator for a non-negative integer input, possibly of varying
+    radixes as denoted by their conventional prefix.
+    """
+    if value.startswith("-"):
+        raise ArgumentTypeError(f"{value} is negative or not an int.")
+
+    if value.startswith("0x"):
+        as_int = int(value, 16)
+    # Second condition is to support C-style octal numbers e.g. 0755.
+    elif value.startswith("0o") or \
+            value.startswith("0") and value[1:].isnumeric():
+        stripped = value.removeprefix("0").removeprefix("o")
+        as_int = int(stripped, 8)
+    elif value.startswith("0b"):
+        as_int = int(value, 2)
+    else:
+        as_int = int(value)
+
+    return as_int
+
+
+parser = ArgumentParser(prog=Path(sys.argv[0]).name,
+                        description=DESCRIPTION)
+parser.add_argument("codes", metavar="CODE", nargs="*", type=validate_int,
+                    help="TODO.")
+
+
+def main() -> None:
+    """Main driver function."""
+    namespace = parser.parse_args()
+    print(namespace)
+
+
+if __name__ == "__main__":
+    main()
