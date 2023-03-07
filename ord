@@ -25,6 +25,11 @@ __author__ = "Vincent Lin"
 
 DESCRIPTION = """\
 Get the Unicode code point for each character in a string.
+
+NOTE: If you supply multiple strings as a whitespace-separated list at
+the command line, it will be interpreted as the concatenation of the
+strings with no whitespace joining them. Use quoting to preserve
+whitespace in your shell script.
 """
 
 parser = ArgumentParser(prog=Path(sys.argv[0]).name,
@@ -35,8 +40,9 @@ parser = ArgumentParser(prog=Path(sys.argv[0]).name,
 parser.add_argument("--help", action="help", default=SUPPRESS,
                     help="show this message and exit")
 
-parser.add_argument("string", metavar="STRING", nargs="?",
-                    help="text string to operate on")
+parser.add_argument("strings", metavar="STRING", nargs="*",
+                    help="text string(s) to operate on")
+
 parser.add_argument("-p", "--prefixed", action="store_true",
                     help="keep the radix prefix (0x, 0o, 0b)")
 parser.add_argument("-e", "--echo", action="store_true",
@@ -80,7 +86,8 @@ class CharFormatter:
         self.uppercase: bool = options.uppercase or options.X
 
         # Compute upfront how much fill width we'll need.
-        self._max_codepoint = max(ord(ch) for ch in options.string)
+        string = "".join(options.strings)
+        self._max_codepoint = max(ord(ch) for ch in string)
 
         match options:
             # TODO: The fill widths below only work assuming all input
@@ -105,8 +112,7 @@ class CharFormatter:
                 self.width = len(str(self._max_codepoint))
 
         # The maximum width needed for a char in the original string.
-        self.original_max_width = max(len(escaped(ch))
-                                      for ch in options.string)
+        self.original_max_width = max(len(escaped(ch)) for ch in string)
 
     def __call__(self, ch: str, echoing: bool) -> str:
         code = ord(ch)
@@ -167,9 +173,9 @@ def main() -> None:
     """Main driver function."""
     namespace = parser.parse_args()
 
-    if namespace.string is None:
-        namespace.string = sys.stdin.read()
-    string: str = namespace.string
+    if not namespace.strings:
+        namespace.strings = [sys.stdin.read()]
+    string: str = "".join(namespace.strings)
 
     echo: bool = namespace.echo
     one_per_line: bool = namespace.one_per_line
