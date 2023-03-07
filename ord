@@ -19,6 +19,7 @@ USAGE: `ord --help`
 import math
 import sys
 from argparse import SUPPRESS, ArgumentParser, Namespace, RawTextHelpFormatter
+from pathlib import Path
 
 __author__ = "Vincent Lin"
 
@@ -26,7 +27,7 @@ DESCRIPTION = """\
 Get the Unicode code point for each character in a string.
 """
 
-parser = ArgumentParser(prog=sys.argv[0],
+parser = ArgumentParser(prog=Path(sys.argv[0]).name,
                         description=DESCRIPTION,
                         formatter_class=RawTextHelpFormatter,
                         add_help=False)
