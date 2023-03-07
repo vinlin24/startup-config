@@ -11,14 +11,25 @@ REQUIRES: Python 3.10+
 
 USAGE: `ord "hello there"`
 
+USAGE: `echo hello there | ord`
+
 USAGE: `ord --help`
 """
 
 import sys
-from argparse import ArgumentParser, Namespace
+from argparse import SUPPRESS, ArgumentParser, Namespace, RawTextHelpFormatter
 from typing import Callable
 
-parser = ArgumentParser(prog=sys.argv[0])
+DESCRIPTION = """\
+Get the Unicode code point for each character in a string.
+"""
+
+parser = ArgumentParser(prog=sys.argv[0],
+                        description=DESCRIPTION,
+                        formatter_class=RawTextHelpFormatter,
+                        add_help=False)
+
+parser.add_argument("--help", action="help", default=SUPPRESS)
 
 parser.add_argument("string", metavar="STRING", nargs="?")
 parser.add_argument("-p", "--prefixed", action="store_true")
@@ -26,12 +37,15 @@ parser.add_argument("-e", "--echo", action="store_true")
 parser.add_argument("-u", "--uppercase", "--upper", action="store_true")
 
 bases_group = parser.add_mutually_exclusive_group()
-bases_group.add_argument("-x", "--hexadecimal", "--hex", action="store_true")
+
 bases_group.add_argument("-X", action="store_true")
+bases_group.add_argument("-x", "--hexadecimal", "--hex", "-h",
+                         action="store_true")
 bases_group.add_argument("-o", "--octal", "--oct", action="store_true")
 bases_group.add_argument("-b", "--binary", "--bin", action="store_true")
 
 sep_group = parser.add_mutually_exclusive_group()
+
 sep_group.add_argument("-c", "--combined", "--packed", action="store_true")
 sep_group.add_argument("-1", dest="one_per_line", action="store_true")
 
@@ -79,6 +93,10 @@ def main() -> None:
     one_per_line: bool = namespace.one_per_line
 
     match namespace:
+        # TODO: The fill widths below only work assuming all input
+        # characters are ASCII.  Unicode characters whose code points
+        # are represented beyond width digits will mess up the spacing
+        # when echoing them with the ord() values.
         case Namespace(hexadecimal=True) | Namespace(X=True):
             caster = hex
             prefix = "0x"
