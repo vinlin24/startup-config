@@ -79,7 +79,7 @@ def main() -> None:
         case _:
             caster = str
             prefix = ""
-            width = 0
+            width = 3
 
     def format_char(ch: str, /) -> str:
         code = ord(ch)
