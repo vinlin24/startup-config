@@ -105,8 +105,14 @@ def main() -> None:
     if one_per_line:
         delimiter = "\n"
 
-    output = delimiter.join(escaped(chr(code)) for code in codes)
+    max_width = max(len(str(code)) for code in codes) if echo else 0
 
+    if echo:
+        echoed = delimiter.join(str(code).ljust(max_width) for code in codes)
+        print(echoed)
+
+    output = delimiter.join(escaped(chr(code)).ljust(max_width)
+                            for code in codes)
     print(output)
 
 
