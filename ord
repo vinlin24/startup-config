@@ -66,6 +66,8 @@ sep_group = parser.add_mutually_exclusive_group()
 
 sep_group.add_argument("-d", "--delimiter", metavar="DELIM", default=" ",
                        help="string to use between each code point")
+sep_group.add_argument("-t", "--tabs", action="store_true",
+                       help="use TAB as the delimiter")
 sep_group.add_argument("-1", dest="one_per_line", action="store_true",
                        help="print each entry on its own line")
 
@@ -180,6 +182,9 @@ def main() -> None:
     echo: bool = namespace.echo
     one_per_line: bool = namespace.one_per_line
     delimiter: str = namespace.delimiter
+    tabs: bool = namespace.tabs
+    if tabs:
+        delimiter = "\t"
 
     char_formatter = CharFormatter(namespace)
 
