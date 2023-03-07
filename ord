@@ -76,8 +76,7 @@ class CharFormatter:
         self.uppercase: bool = options.uppercase or options.X
 
         # Compute upfront how much fill width we'll need.
-        self.string: str = options.string
-        self._max_codepoint = max(ord(ch) for ch in self.string)
+        self._max_codepoint = max(ord(ch) for ch in options.string)
 
         match options:
             # TODO: The fill widths below only work assuming all input
@@ -102,7 +101,8 @@ class CharFormatter:
                 self.width = len(str(self._max_codepoint))
 
         # The maximum width needed for a char in the original string.
-        self.original_max_width = max(len(escaped(ch)) for ch in self.string)
+        self.original_max_width = max(len(escaped(ch))
+                                      for ch in options.string)
 
     def __call__(self, ch: str, echoing: bool) -> str:
         code = ord(ch)
