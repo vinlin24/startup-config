@@ -16,6 +16,7 @@ USAGE: `echo hello there | ord`
 USAGE: `ord --help`
 """
 
+import math
 import sys
 from argparse import SUPPRESS, ArgumentParser, Namespace, RawTextHelpFormatter
 
@@ -78,6 +79,10 @@ class CharFormatter:
         self.uppercase: bool = options.uppercase or options.X
         self.combined: bool = options.combined
 
+        # Compute upfront how much fill width we'll need.
+        self.string: str = options.string
+        self._max_codepoint = max(ord(ch) for ch in self.string)
+
         match options:
             # TODO: The fill widths below only work assuming all input
             # characters are ASCII.  Unicode characters whose code points
@@ -86,23 +91,32 @@ class CharFormatter:
             case Namespace(hexadecimal=True) | Namespace(X=True):
                 self.caster = hex
                 self.prefix = "0x"
-                self.width = 2
+                self.width = self._digits_needed(digits_per_bit=4)
             case Namespace(octal=True):
                 self.caster = oct
                 self.prefix = "0o"
-                self.width = 3
+                self.width = self._digits_needed(digits_per_bit=3)
             case Namespace(binary=True):
                 self.caster = bin
                 self.prefix = "0b"
-                self.width = 8
+                self.width = self._digits_needed(digits_per_bit=1)
             case _:
                 self.caster = str
                 self.prefix = ""
-                self.width = 3
+                self.width = len(str(self._max_codepoint))
 
-    def __call__(self, ch: str) -> str:
+        # The maximum width needed for a char in the original string.
+        self.original_max_width = max(len(escaped(ch)) for ch in self.string)
+
+    def __call__(self, ch: str, echoing: bool) -> str:
         code = ord(ch)
-        casted = self.caster(code).removeprefix(self.prefix).zfill(self.width)
+
+        if echoing:
+            width = max(self.width, self.original_max_width)
+        else:
+            width = self.width
+
+        casted = self.caster(code).removeprefix(self.prefix).zfill(width)
         if self.uppercase:
             casted = casted.upper()
         # Caller's responsibility to tack a single prefix onto the
@@ -110,6 +124,14 @@ class CharFormatter:
         if self.combined:
             return casted
         return (self.prefix if self.prefixed else "") + casted
+
+    def _digits_needed(self, digits_per_bit: int) -> int:
+        if self._max_codepoint == 0:
+            next_power_of_2 = 1
+        else:
+            next_power_of_2 = (2**(self._max_codepoint - 1)).bit_length()
+        bits_needed = next_power_of_2.bit_length()
+        return math.ceil(bits_needed / digits_per_bit)
 
 
 def escaped(ch: str) -> str:
@@ -123,20 +145,25 @@ def escaped(ch: str) -> str:
     program may result in this function returning longer strings like
     \x00, etc. which may compromise the spacing in the final output.
     """
+    safe = repr(ch).strip("'\"")
+    if safe == " ":
+        return "SPC"  # So it doesn't break external parsers, prolly.
     return repr(ch).strip("'\"")
 
 
 def print_one_per_line(string: str, echo: bool,
-                       formatter: CharFormatter
+                       formatter: CharFormatter,
                        ) -> None:
     """Handle the case where each result goes on a separate line."""
     if echo:
-        def format_line(ch: str, /) -> str:
-            # Width: accommodate (text) escape sequences e.g. \n, \t
-            return f"{escaped(ch).rjust(2)} {formatter(ch)}"
+        width = formatter.original_max_width
+
+        def format_line(ch: str, echo: bool, /) -> str:
+            return f"{escaped(ch).rjust(width)} {formatter(ch, echo)}"
     else:
         format_line = formatter
-    lines = "\n".join(format_line(ch) for ch in string)
+
+    lines = "\n".join(format_line(ch, echo) for ch in string)
     print(lines)
 
 
@@ -144,9 +171,9 @@ def main() -> None:
     """Main driver function."""
     namespace = parser.parse_args()
 
-    string: str | None = namespace.string
-    if string is None:
-        string = sys.stdin.read()
+    if namespace.string is None:
+        namespace.string = sys.stdin.read()
+    string: str = namespace.string
 
     prefixed: bool = namespace.prefixed
     echo: bool = namespace.echo
@@ -155,18 +182,18 @@ def main() -> None:
 
     char_formatter = CharFormatter(namespace)
     prefix = char_formatter.prefix
-    width = char_formatter.width
 
     if one_per_line:
         print_one_per_line(string, echo, char_formatter)
         return
 
     delimiter = "" if combined else " "
-    output = delimiter.join(char_formatter(ch) for ch in string)
+    output = delimiter.join(char_formatter(ch, echo) for ch in string)
     if combined and prefixed:
         output = prefix + output
 
     if echo:
+        width = max(char_formatter.width, char_formatter.original_max_width)
         echoed = delimiter.join(escaped(ch).ljust(width) for ch in string)
         print(echoed)
     print(output)
