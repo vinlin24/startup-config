@@ -3,6 +3,8 @@
 """chr
 
 TODO.
+
+REQUIRES: Python 3.9+
 """
 
 import sys
@@ -45,10 +47,24 @@ parser.add_argument("codes", metavar="CODE", nargs="*", type=validate_int,
                     help="TODO.")
 
 
+def codes_from_stdin() -> list[int]:
+    try:
+        return [validate_int(token) for token in sys.stdin.read().split()
+                if token and not token.isspace()]
+    except (ValueError, ArgumentTypeError) as error:
+        invalid_token = error.args[0].split()[-1]
+        parser.error(f"invalid validate_int value: {invalid_token}")
+
+
 def main() -> None:
     """Main driver function."""
     namespace = parser.parse_args()
-    print(namespace)
+
+    codes: list[int] = namespace.codes
+    if not codes:
+        codes = codes_from_stdin()
+
+    print(codes)
 
 
 if __name__ == "__main__":
