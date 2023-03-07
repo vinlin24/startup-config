@@ -44,6 +44,8 @@ alias udiff="diff --color=auto -u"
 alias mime-type="file -b --mime-type"
 alias mime-encoding="file -b --mime-encoding"
 
+export PATH=/c/bin:$PATH
+
 # Connect to UCLA Engineering lnxsrv NUM, default 15.
 function seas() {
     local SERVER_NUM=15 # ol' reliable
