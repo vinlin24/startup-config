@@ -56,8 +56,12 @@ bases_group.add_argument("-o", "--octal", "--oct", action="store_true",
 bases_group.add_argument("-b", "--binary", "--bin", action="store_true",
                          help="use binary code points")
 
-parser.add_argument("-1", dest="one_per_line", action="store_true",
-                    help="print each entry on its own line")
+sep_group = parser.add_mutually_exclusive_group()
+
+sep_group.add_argument("-d", "--delimiter", metavar="DELIM", default=" ",
+                       help="string to use between each code point")
+sep_group.add_argument("-1", dest="one_per_line", action="store_true",
+                       help="print each entry on its own line")
 
 
 # pylint: disable=too-few-public-methods
@@ -169,6 +173,7 @@ def main() -> None:
 
     echo: bool = namespace.echo
     one_per_line: bool = namespace.one_per_line
+    delimiter: str = namespace.delimiter
 
     char_formatter = CharFormatter(namespace)
 
@@ -176,11 +181,11 @@ def main() -> None:
         print_one_per_line(string, echo, char_formatter)
         return
 
-    output = " ".join(char_formatter(ch, echo) for ch in string)
+    output = delimiter.join(char_formatter(ch, echo) for ch in string)
 
     if echo:
         width = max(char_formatter.width, char_formatter.original_max_width)
-        echoed = " ".join(escaped(ch).ljust(width) for ch in string)
+        echoed = delimiter.join(escaped(ch).ljust(width) for ch in string)
         print(echoed)
     print(output)
 
