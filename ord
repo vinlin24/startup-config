@@ -16,6 +16,7 @@ USAGE: `ord --help`
 
 import sys
 from argparse import ArgumentParser, Namespace
+from typing import Callable
 
 parser = ArgumentParser(prog=sys.argv[0])
 
@@ -35,7 +36,21 @@ sep_group.add_argument("-c", "--combined", "--packed", action="store_true")
 sep_group.add_argument("-1", dest="one_per_line", action="store_true")
 
 
+def print_one_per_line(string: str, echo: bool,
+                       format_char: Callable[[str], str]
+                       ) -> None:
+    """Handle the case where each result goes on a separate line."""
+    if echo:
+        def format_line(ch: str, /) -> str:
+            return f"{ch} {format_char(ch)}"
+    else:
+        format_line = format_char
+    lines = "\n".join(format_line(ch) for ch in string)
+    print(lines)
+
+
 def main() -> None:
+    """Main driver function."""
     namespace = parser.parse_args()
 
     string: str | None = namespace.string
@@ -66,26 +81,19 @@ def main() -> None:
             prefix = ""
             width = 0
 
-    def format_char(ch: str) -> str:
+    def format_char(ch: str, /) -> str:
         code = ord(ch)
         casted = caster(code).removeprefix(prefix).zfill(width)
         if uppercase:
             casted = casted.upper()
-        # Caller's responsibility to tack a single prefix to the
+        # Caller's responsibility to tack a single prefix onto the
         # combined string.
         if combined:
             return casted
         return (prefix if prefixed else "") + casted
 
     if one_per_line:
-        if echo:
-            def format_line(ch: str) -> str:
-                return f"{ch} {format_char(ch)}"
-        else:
-            format_line = format_char
-
-        lines = "\n".join(format_line(ch) for ch in string)
-        print(lines)
+        print_one_per_line(string, echo, format_char)
         return
 
     delimiter = "" if combined else " "
