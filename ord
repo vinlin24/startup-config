@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""ord
+
+Output Python's ord() for all the characters within the input string,
+with support for different bases, such as hexadecimal, octal, and
+binary, as well as the option of including their respective prefixes
+(0x, 0o, 0b).
+
+REQUIRES: Python 3.10+
+
+USAGE: `ord "hello there"`
+
+USAGE: `ord --help`
+"""
+
+import sys
+from argparse import ArgumentParser, Namespace
+
+parser = ArgumentParser(prog=sys.argv[0])
+
+parser.add_argument("string", metavar="STRING", nargs="?")
+parser.add_argument("-p", "--prefixed", action="store_true")
+parser.add_argument("-e", "--echo", action="store_true")
+parser.add_argument("-u", "--uppercase", "--upper", action="store_true")
+
+bases_group = parser.add_mutually_exclusive_group()
+bases_group.add_argument("-x", "--hexadecimal", "--hex", action="store_true")
+bases_group.add_argument("-X", action="store_true")
+bases_group.add_argument("-o", "--octal", "--oct", action="store_true")
+bases_group.add_argument("-b", "--binary", "--bin", action="store_true")
+
+sep_group = parser.add_mutually_exclusive_group()
+sep_group.add_argument("-c", "--combined", "--packed", action="store_true")
+sep_group.add_argument("-1", dest="one_per_line", action="store_true")
+
+
+def main() -> None:
+    namespace = parser.parse_args()
+
+    string: str | None = namespace.string
+    if string is None:
+        string = sys.stdin.read()
+
+    prefixed: bool = namespace.prefixed
+    echo: bool = namespace.echo
+    uppercase: bool = namespace.uppercase or namespace.X
+    combined: bool = namespace.combined
+    one_per_line: bool = namespace.one_per_line
+
+    match namespace:
+        case Namespace(hexadecimal=True) | Namespace(X=True):
+            caster = hex
+            prefix = "0x"
+            width = 2
+        case Namespace(octal=True):
+            caster = oct
+            prefix = "0o"
+            width = 3
+        case Namespace(binary=True):
+            caster = bin
+            prefix = "0b"
+            width = 8
+        case _:
+            caster = str
+            prefix = ""
+            width = 0
+
+    def format_char(ch: str) -> str:
+        code = ord(ch)
+        casted = caster(code).removeprefix(prefix).zfill(width)
+        if uppercase:
+            casted = casted.upper()
+        # Caller's responsibility to tack a single prefix to the
+        # combined string.
+        if combined:
+            return casted
+        return (prefix if prefixed else "") + casted
+
+    if one_per_line:
+        if echo:
+            def format_line(ch: str) -> str:
+                return f"{ch} {format_char(ch)}"
+        else:
+            format_line = format_char
+
+        lines = "\n".join(format_line(ch) for ch in string)
+        print(lines)
+        return
+
+    delimiter = "" if combined else " "
+    output = delimiter.join(format_char(ch) for ch in string)
+    if combined and prefixed:
+        output = prefix + output
+
+    if echo:
+        echoed = delimiter.join(ch.ljust(width) for ch in string)
+        print(echoed)
+    print(output)
+
+
+if __name__ == "__main__":
+    main()

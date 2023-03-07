@@ -13,7 +13,7 @@ CXXFLAGS = -std=c++17 $(CFLAGS)
 
 BIN_DIRECTORY = /c/bin
 
-PATH_SCRIPTS = snippet lint
+PATH_SCRIPTS = snippet lint ord
 
 all:
 	@echo >&2 Specify a make target.
