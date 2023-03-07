@@ -36,13 +36,28 @@ sep_group.add_argument("-c", "--combined", "--packed", action="store_true")
 sep_group.add_argument("-1", dest="one_per_line", action="store_true")
 
 
+def escaped(ch: str) -> str:
+    r"""
+    Return a string representation that can be safely printed without
+    messing up formatting.
+
+    NOTE: It is expected that len(escaped(ch)) will be no more than 2,
+    with such characters including the escape sequences common in TEXT
+    files such as \n and \t.  Attempting to feed binary data into this
+    program may result in this function returning longer strings like
+    \x00, etc. which may compromise the spacing in the final output.
+    """
+    return repr(ch).strip("'\"")
+
+
 def print_one_per_line(string: str, echo: bool,
                        format_char: Callable[[str], str]
                        ) -> None:
     """Handle the case where each result goes on a separate line."""
     if echo:
         def format_line(ch: str, /) -> str:
-            return f"{ch} {format_char(ch)}"
+            # Width: accommodate (text) escape sequences e.g. \n, \t
+            return f"{escaped(ch).rjust(2)} {format_char(ch)}"
     else:
         format_line = format_char
     lines = "\n".join(format_line(ch) for ch in string)
@@ -102,7 +117,7 @@ def main() -> None:
         output = prefix + output
 
     if echo:
-        echoed = delimiter.join(ch.ljust(width) for ch in string)
+        echoed = delimiter.join(escaped(ch).ljust(width) for ch in string)
         print(echoed)
     print(output)
 
