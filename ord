@@ -18,7 +18,6 @@ USAGE: `ord --help`
 
 import sys
 from argparse import SUPPRESS, ArgumentParser, Namespace, RawTextHelpFormatter
-from typing import Callable
 
 __author__ = "Vincent Lin"
 
@@ -63,6 +62,56 @@ sep_group.add_argument("-1", dest="one_per_line", action="store_true",
                        help="print each entry on its own line")
 
 
+# pylint: disable=too-few-public-methods
+class CharFormatter:
+    """Configurable code point formatter to use on each character.
+
+    USAGE::
+
+        namespace = parser.parse_args()
+        char_formatter = CharFormatter(namespace)
+        formatted = char_formatter("A")  # __call__
+    """
+
+    def __init__(self, options: Namespace) -> None:
+        self.prefixed: bool = options.prefixed
+        self.uppercase: bool = options.uppercase or options.X
+        self.combined: bool = options.combined
+
+        match options:
+            # TODO: The fill widths below only work assuming all input
+            # characters are ASCII.  Unicode characters whose code points
+            # are represented beyond width digits will mess up the
+            # spacing when echoing them with the ord() values.
+            case Namespace(hexadecimal=True) | Namespace(X=True):
+                self.caster = hex
+                self.prefix = "0x"
+                self.width = 2
+            case Namespace(octal=True):
+                self.caster = oct
+                self.prefix = "0o"
+                self.width = 3
+            case Namespace(binary=True):
+                self.caster = bin
+                self.prefix = "0b"
+                self.width = 8
+            case _:
+                self.caster = str
+                self.prefix = ""
+                self.width = 3
+
+    def __call__(self, ch: str) -> str:
+        code = ord(ch)
+        casted = self.caster(code).removeprefix(self.prefix).zfill(self.width)
+        if self.uppercase:
+            casted = casted.upper()
+        # Caller's responsibility to tack a single prefix onto the
+        # combined string.
+        if self.combined:
+            return casted
+        return (self.prefix if self.prefixed else "") + casted
+
+
 def escaped(ch: str) -> str:
     r"""
     Return a string representation that can be safely printed without
@@ -78,68 +127,17 @@ def escaped(ch: str) -> str:
 
 
 def print_one_per_line(string: str, echo: bool,
-                       char_formatter: Callable[[str], str]
+                       formatter: CharFormatter
                        ) -> None:
     """Handle the case where each result goes on a separate line."""
     if echo:
         def format_line(ch: str, /) -> str:
             # Width: accommodate (text) escape sequences e.g. \n, \t
-            return f"{escaped(ch).rjust(2)} {char_formatter(ch)}"
+            return f"{escaped(ch).rjust(2)} {formatter(ch)}"
     else:
-        format_line = char_formatter
+        format_line = formatter
     lines = "\n".join(format_line(ch) for ch in string)
     print(lines)
-
-
-def get_char_formatting(namespace: Namespace
-                        ) -> tuple[Callable[[str], str], str, int]:
-    """
-    Parse the options to construct a function that will take a character
-    and format it with the appropriate code point value as well as
-    prefix and spacing.  Also return this prefix and fill width.
-
-    Returns:
-        tuple[Callable[[str], str], str, int]: A 3-tuple containing the
-        char formatter function, the radix prefix, and fill width.
-    """
-    prefixed: bool = namespace.prefixed
-    uppercase: bool = namespace.uppercase or namespace.X
-    combined: bool = namespace.combined
-
-    match namespace:
-        # TODO: The fill widths below only work assuming all input
-        # characters are ASCII.  Unicode characters whose code points
-        # are represented beyond width digits will mess up the spacing
-        # when echoing them with the ord() values.
-        case Namespace(hexadecimal=True) | Namespace(X=True):
-            caster = hex
-            prefix = "0x"
-            width = 2
-        case Namespace(octal=True):
-            caster = oct
-            prefix = "0o"
-            width = 3
-        case Namespace(binary=True):
-            caster = bin
-            prefix = "0b"
-            width = 8
-        case _:
-            caster = str
-            prefix = ""
-            width = 3
-
-    def char_formatter(ch: str, /) -> str:
-        code = ord(ch)
-        casted = caster(code).removeprefix(prefix).zfill(width)
-        if uppercase:
-            casted = casted.upper()
-        # Caller's responsibility to tack a single prefix onto the
-        # combined string.
-        if combined:
-            return casted
-        return (prefix if prefixed else "") + casted
-
-    return char_formatter, prefix, width
 
 
 def main() -> None:
@@ -155,7 +153,9 @@ def main() -> None:
     combined: bool = namespace.combined
     one_per_line: bool = namespace.one_per_line
 
-    char_formatter, prefix, width = get_char_formatting(namespace)
+    char_formatter = CharFormatter(namespace)
+    prefix = char_formatter.prefix
+    width = char_formatter.width
 
     if one_per_line:
         print_one_per_line(string, echo, char_formatter)
