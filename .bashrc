@@ -110,7 +110,7 @@ function activate() {
             cd "$original_cwd"
             return 0
         fi
-        if [ $(pwd) = "/" ]; then
+        if [ "$(pwd)" = "/" ]; then
             condition=false
         else
             cd ..
