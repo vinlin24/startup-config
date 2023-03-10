@@ -13,8 +13,15 @@ GREEN=$(tput setaf 2)
 END=$(tput sgr0)
 
 for filename in "$@"; do
-    # Automatically skip non-existent files as well as directories.
-    if [ ! -e "$filename" ] || [ -d "$filename" ]; then
+    # Automatically skip entries that aren't valid regular files.
+    if [ ! -f "$filename" ]; then
+        echo "Skipping invalid file: $filename"
+        continue
+    fi
+
+    mime_encoding=$(file --mime-encoding $filename | awk '{print $2}')
+    if [ "$mime_encoding" = "binary" ]; then
+        echo "Skipping binary file: $filename"
         continue
     fi
 
@@ -31,6 +38,7 @@ for filename in "$@"; do
         echo >&2 "${RED}${filename}: Containing a non-ASCII character(s):${END}"
         echo >&2 "$lines_non_ascii"
         echo >&2
+        err=1
     fi
 done
 
