@@ -127,6 +127,7 @@ function activate() {
         echo "Making virtual environment ${venv_folder} in current directory..."
         python -m venv "$venv_folder"
         source "$windows_path" 2>/dev/null || source "$posix_path"
+        python -m pip install --upgrade pip
     else
         echo "Decided not to create a virtual environment."
     fi
