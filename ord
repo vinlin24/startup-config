@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ord
-
-Output Python's ord() for all the characters within the input string,
-with support for different bases, such as hexadecimal, octal, and
-binary, as well as the option of including their respective prefixes
-(0x, 0o, 0b).
+r"""
+Apply Python's ord() on all the characters within the input string, with
+support for different bases, such as hexadecimal, octal, and binary, as
+well as the option of including their respective prefixes (0x, 0o, 0b).
 
 REQUIRES: Python 3.10+
 
-USAGE: `ord "hello there"`
+EXAMPLES:
 
-USAGE: `echo hello there | ord`
+    * ord -x "hello there"
+    * echo -e "hello\nthere\n" | ord -ep
+    * ord lmao -1 | awk 'BEGIN {s=0} {s += $1} END {print s}'
 
-USAGE: `ord --help`
+NOTE: If you supply multiple strings as a whitespace-separated list at
+the command line, it will be interpreted as the concatenation of the
+strings with no whitespace joining them. Use quoting to preserve
+whitespace in your shell script.
 """
 
 import math
@@ -23,17 +26,8 @@ from pathlib import Path
 
 __author__ = "Vincent Lin"
 
-DESCRIPTION = """\
-Get the Unicode code point for each character in a string.
-
-NOTE: If you supply multiple strings as a whitespace-separated list at
-the command line, it will be interpreted as the concatenation of the
-strings with no whitespace joining them. Use quoting to preserve
-whitespace in your shell script.
-"""
-
 parser = ArgumentParser(prog=Path(sys.argv[0]).name,
-                        description=DESCRIPTION,
+                        description=__doc__,
                         formatter_class=RawTextHelpFormatter,
                         add_help=False)
 
@@ -41,7 +35,7 @@ parser.add_argument("--help", action="help", default=SUPPRESS,
                     help="show this message and exit")
 
 parser.add_argument("strings", metavar="STRING", nargs="*",
-                    help="text string(s) to operate on")
+                    help="text string(s); reads from stdin if omitted")
 
 parser.add_argument("-p", "--prefixed", action="store_true",
                     help="keep the radix prefix (0x, 0o, 0b)")
@@ -54,13 +48,13 @@ bases_group = parser.add_mutually_exclusive_group()
 
 bases_group.add_argument("-x", "-h", "--hexadecimal", "--hex",
                          action="store_true",
-                         help="use hexadecimal code points")
+                         help="output code points as hexadecimal")
 bases_group.add_argument("-X", action="store_true",
                          help="equivalent to specifying -x and -u")
 bases_group.add_argument("-o", "--octal", "--oct", action="store_true",
-                         help="use octal code points")
+                         help="output code points as octal")
 bases_group.add_argument("-b", "--binary", "--bin", action="store_true",
-                         help="use binary code points")
+                         help="output code points as binary")
 
 sep_group = parser.add_mutually_exclusive_group()
 
