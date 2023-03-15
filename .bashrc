@@ -202,6 +202,20 @@ function workspace() {
         fi
         return 0
     fi
+
+    # Non-ambiguous match: directly open the workspace.
+    if [ $num_matches -eq 1 ]; then
+        local repo="${matches[0]}"
+        local workspace=$(ls -1 "$repo"*.code-workspace 2>/dev/null | head -n 1)
+        if [ "$workspace" ]; then
+            echo "Opening by workspace ${workspace}..."
+            code "$workspace"
+        else
+            echo "No workspace file found, opening by directory ${repo}..."
+            code "$repo"
+        fi
+        return 0
+    fi
 }
 
 ###################################################################
