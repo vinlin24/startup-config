@@ -204,8 +204,9 @@ function workspace() {
     fi
 
     # Non-ambiguous match: directly open the workspace.
+    local repo
     if [ $num_matches -eq 1 ]; then
-        local repo="${matches[0]}"
+        repo="${matches[0]}"
         local workspace=$(ls -1 "$repo"*.code-workspace 2>/dev/null | head -n 1)
         if [ "$workspace" ]; then
             echo "Opening by workspace ${workspace}..."
@@ -216,6 +217,34 @@ function workspace() {
         fi
         return 0
     fi
+
+    # Ambiguous matches: prompt for choice.
+    echo "${YELLOW}Multiple repositories match ${BOLD}${name}${END}"
+    for ((i = 0; i < $num_matches; i++)); do
+        echo "[${i}] ${matches[$i]}"
+    done
+    echo -n "${YELLOW}Which to choose? [0-$((num_matches - 1))] ${END}"
+    local index
+    read -r index
+
+    # Invalid choice if index is non-numeric or not in [0, num_matches).
+    if ! echo -n "$index" | grep -qE '^-?[0-9]+$' ||
+        [ $index -ge $num_matches ] || [ $index -lt 0 ]; then
+        echo >&2 "${RED}Invalid choice ${BOLD}${index}${END}"
+        return 1
+    fi
+
+    repo="${matches[$index]}"
+
+    local workspace=$(ls -1 "$repo"*.code-workspace 2>/dev/null | head -n 1)
+    if [ "$workspace" ]; then
+        echo "Opening by workspace file ${BOLD}${workspace}${END}"
+        code "$workspace"
+    else
+        echo "No workspace file found, opening directory ${BOLD}${repo}${END}"
+        code "$repo"
+    fi
+    return 0
 }
 
 ###################################################################
