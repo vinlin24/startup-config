@@ -11,7 +11,7 @@ endif
 
 CXXFLAGS = -std=c++17 $(CFLAGS)
 
-BIN_DIRECTORY = /c/bin
+BIN_DIRECTORY = $(shell echo "$$HOME/bin")
 
 PATH_SCRIPTS = snippet lint ord chr
 
