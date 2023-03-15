@@ -58,9 +58,9 @@ mock_tokens(char const *tokens[], size_t num_tokens,
     }
 
     /* Since we're using values from argv, the user's final newline when hitting
-    RETURN at the command line isn't included.  Thus, we account for that here
-    by capping the C string with both a newline and the null character.  */
-    if (pos == *current_capacity)
+       RETURN at the command line isn't included.  Thus, we account for that
+       here by capping the C string with both a newline and the null byte.  */
+    if (pos + 2 >= *current_capacity)
         realloc(heap_string, (*current_capacity += 2));
 
     heap_string[pos] = '\n';
