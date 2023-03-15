@@ -171,6 +171,20 @@ function avg_time() {
     echo "Average sys:  ${avg_sys}"
 }
 
+# Helper function for workspace().
+function _open_workspace() {
+    local repo="$1"
+    local workspace=$(ls -1 "$repo"*.code-workspace 2>/dev/null | head -n 1)
+    if [ "$workspace" ]; then
+        echo "Opening by workspace file ${BOLD}${workspace}${END}"
+        code "$workspace"
+    else
+        echo "No workspace file found, opening directory ${BOLD}${repo}${END}"
+        code "$repo"
+    fi
+    return 0
+}
+
 function workspace() {
     local repos=()
     readarray -t repos <<<"$(ls -d1 "$REPOS_DIR"/*/)"
@@ -207,14 +221,7 @@ function workspace() {
     local repo
     if [ $num_matches -eq 1 ]; then
         repo="${matches[0]}"
-        local workspace=$(ls -1 "$repo"*.code-workspace 2>/dev/null | head -n 1)
-        if [ "$workspace" ]; then
-            echo "Opening by workspace ${workspace}..."
-            code "$workspace"
-        else
-            echo "No workspace file found, opening by directory ${repo}..."
-            code "$repo"
-        fi
+        _open_workspace "$repo"
         return 0
     fi
 
@@ -235,16 +242,7 @@ function workspace() {
     fi
 
     repo="${matches[$index]}"
-
-    local workspace=$(ls -1 "$repo"*.code-workspace 2>/dev/null | head -n 1)
-    if [ "$workspace" ]; then
-        echo "Opening by workspace file ${BOLD}${workspace}${END}"
-        code "$workspace"
-    else
-        echo "No workspace file found, opening directory ${BOLD}${repo}${END}"
-        code "$repo"
-    fi
-    return 0
+    _open_workspace "$repo"
 }
 
 ###################################################################
