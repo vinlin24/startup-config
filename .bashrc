@@ -207,10 +207,14 @@ function workspace() {
     fi
 
     if [ $num_matches -eq 0 ]; then
-        echo -n "No repository found whose name matches ${name}. Create one? "
-        read -p "[y/N] " -r confirmation
-        if [ "$confirmation" = "y" ]; then
-            echo "TODO: create new workspace."
+        echo -n "${YELLOW}No repository found that matches ${BOLD}${name}${END}"
+        echo -n "${YELLOW}. Create one? [y/N] ${END}"
+        read -r confirmation
+        if [[ $confirmation =~ ^[yY].* ]]; then
+            local new_repo="$REPOS_DIR"/"$name"
+            mkdir "$new_repo"
+            echo "Created new directory ${BOLD}${new_repo}${END}"
+            code "$new_repo"
         else
             echo "Decided not to create a new workspace."
         fi
