@@ -189,10 +189,14 @@ function workspace() {
     local repos=()
     readarray -t repos <<<"$(ls -d1 "$REPOS_DIR"/*/)"
 
+    # No name was given: just list out all the repositories.
     local name="$1"
     if [ -z "$name" ]; then
         for ((i = 0; i < ${#repos[@]}; i++)); do
-            echo "${repos[$i]}"
+            local trimmed="${repos[$i]#"$REPOS_DIR"}"
+            trimmed="${trimmed#/}"
+            trimmed="${trimmed%/}"
+            echo "$trimmed"
         done
         return 0
     fi
