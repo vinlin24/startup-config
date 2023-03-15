@@ -29,6 +29,9 @@ export EXIT_SUCCESS=0
 export EXIT_FAILURE=1
 export EINVAL=22
 
+# Paths relevant to me
+export REPOS_DIR="${HOME}/repos"
+
 # Meta aliases
 alias rc='code ~/.bashrc'
 alias refresh='source ~/.bashrc'
@@ -166,6 +169,39 @@ function avg_time() {
     echo "Average real: ${avg_real}"
     echo "Average user: ${avg_user}"
     echo "Average sys:  ${avg_sys}"
+}
+
+function workspace() {
+    local repos=()
+    readarray -t repos <<<"$(ls -d1 "$REPOS_DIR"/*/)"
+
+    local name="$1"
+    if [ -z "$name" ]; then
+        for ((i = 0; i < ${#repos[@]}; i++)); do
+            echo "${repos[$i]}"
+        done
+        return 0
+    fi
+
+    local matches=()
+    readarray -t matches <<<"$(printf -- '%s\n' "${repos[@]}" | grep "$name")"
+    # #matches[@] is 1 even if there were no matches because matches still has 1
+    # element, the empty string.
+    local num_matches=0
+    if [ "$matches" ]; then
+        num_matches=${#matches[@]}
+    fi
+
+    if [ $num_matches -eq 0 ]; then
+        echo -n "No repository found whose name matches ${name}. Create one? "
+        read -p "[y/N] " -r confirmation
+        if [ "$confirmation" = "y" ]; then
+            echo "TODO: create new workspace."
+        else
+            echo "Decided not to create a new workspace."
+        fi
+        return 0
+    fi
 }
 
 ###################################################################
