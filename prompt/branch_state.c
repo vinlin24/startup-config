@@ -3,6 +3,7 @@
  * @brief Format the Git part of the prompt.
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -27,6 +28,15 @@
 
 #define STARTSWITH(str, sub) (strncmp((str), (sub), strlen((sub))) == 0)
 
+#define LSTRIP(str)             \
+    do                          \
+    {                           \
+        while (isspace(*(str))) \
+        {                       \
+            (str)++;            \
+        }                       \
+    } while (0)
+
 /* Flags for branch states.  */
 
 typedef enum state_t
@@ -36,9 +46,10 @@ typedef enum state_t
     STAGED = 1 << 2,
     UNTRACKED = 1 << 3,
     MODIFIED = 1 << 4,
+    DELETED = 1 << 5,
 
-    HEAD_DETACHED = 1 << 5,
-    FATAL = 1 << 6,
+    HEAD_DETACHED = 1 << 6,
+    FATAL = 1 << 7,
 
 } state_t;
 
@@ -57,6 +68,7 @@ static status_t parse_status(FILE *fp)
     status.state = 0x00;
 
     bool branch_found = false;
+    bool unstaged_changes = false;
 
     char line_buffer[MAX_LINE_LENGTH];
     while (fgets(line_buffer, sizeof(line_buffer), fp) != NULL)
@@ -90,13 +102,24 @@ static status_t parse_status(FILE *fp)
         }
 
         if (STARTSWITH(line_buffer, "Changes not staged for commit"))
+        {
             status.state |= MODIFIED;
+            unstaged_changes = true;
+        }
         if (STARTSWITH(line_buffer, "Untracked files"))
             status.state |= UNTRACKED;
         if (STARTSWITH(line_buffer, "Changes to be committed"))
             status.state |= STAGED;
         if (STARTSWITH(line_buffer, "Unmerged paths"))
             status.state |= CONFLICT;
+
+        if (unstaged_changes)
+        {
+            char *buffer_ptr = line_buffer;
+            LSTRIP(buffer_ptr);
+            if (STARTSWITH(buffer_ptr, "deleted:"))
+                status.state |= DELETED;
+        }
     }
 
     if (!branch_found)
@@ -108,6 +131,7 @@ static status_t parse_status(FILE *fp)
 static void get_format(char *buffer, color_t *color, state_t state)
 {
     buffer[0] = '\0';
+    bool bang_added = false;
     if (state & CLEAN)
     {
         *color = GREEN;
@@ -117,6 +141,12 @@ static void get_format(char *buffer, color_t *color, state_t state)
     {
         strcat(buffer, "*");
         *color = YELLOW;
+    }
+    if (state & DELETED)
+    {
+        strcat(buffer, "!");
+        *color = YELLOW;
+        bang_added = true;
     }
     if (state & UNTRACKED)
     {
@@ -130,7 +160,9 @@ static void get_format(char *buffer, color_t *color, state_t state)
     }
     if (state & CONFLICT)
     {
-        strcat(buffer, "!");
+        /* Don't add another ! if there's already one from deletion.  */
+        if (!bang_added)
+            strcat(buffer, "!");
         *color = RED;
     }
 }
