@@ -11,12 +11,16 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
+/* Initial size to use for string buffer.  */
 #define BUFFER_SIZE 1024
 
+/* If the character is alphabetical, return it with opposite capitalization.
+   Otherwise, return the character unchanged.  */
 #define toggle_case(ch) (isupper((ch)) ? tolower((ch)) : toupper((ch)))
 
+/* Reallocate a string pointer to a heap segment twice the current capacity,
+   also updating current_capacity.  */
 #define double_string(heap_string, current_capacity)                 \
     do                                                               \
     {                                                                \
