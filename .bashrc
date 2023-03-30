@@ -47,7 +47,8 @@ alias udiff="diff --color=auto -u"
 alias mime-type="file -b --mime-type"
 alias mime-encoding="file -b --mime-encoding"
 
-export PATH=/c/bin:$PATH
+# Easier way to get a tab at the command line e.g. "$(tab)"
+alias tab="echo -en '\\011'"
 
 # Connect to UCLA Engineering lnxsrv NUM, default 15.
 function seas() {
