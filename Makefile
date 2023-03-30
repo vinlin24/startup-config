@@ -13,8 +13,6 @@ CXXFLAGS = -std=c++17 $(CFLAGS)
 
 BIN_DIRECTORY = $(shell echo "$$HOME/bin")
 
-PATH_SCRIPTS = snippet lint ord chr spread
-
 all:
 	@echo >&2 Specify a make target.
 	@exit 1
@@ -33,12 +31,6 @@ prompt/venv_state: prompt/venv_state.o
 prompt/venv_state.o: prompt/venv_state.cpp prompt/color.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+.PHONY: clean
 clean:
 	rm -rf *.exe *.o __pycache__ prompt/*.exe prompt/*.o prompt/__pycache__
-
-copy:
-	-cp -u *.exe prompt/*.exe $(PATH_SCRIPTS) $(BIN_DIRECTORY)
-	@echo
-	-ls $(BIN_DIRECTORY)
-
-.PHONY: clean copy
