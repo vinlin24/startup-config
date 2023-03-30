@@ -166,6 +166,9 @@ def main() -> None:
     if not namespace.strings:
         namespace.strings = [sys.stdin.read()]
     string: str = "".join(namespace.strings)
+    if not string:
+        sys.stderr.write("Expected at least one string.\n")
+        sys.exit(22)
 
     echo: bool = namespace.echo
     one_per_line: bool = namespace.one_per_line
