@@ -13,7 +13,7 @@ CXXFLAGS = -std=c++17 $(CFLAGS)
 
 BIN_DIRECTORY = $(shell echo "$$HOME/bin")
 
-PATH_SCRIPTS = snippet lint ord chr
+PATH_SCRIPTS = snippet lint ord chr spread
 
 all:
 	@echo >&2 Specify a make target.
