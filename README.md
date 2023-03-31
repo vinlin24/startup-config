@@ -1,6 +1,5 @@
 # Startup Scripts and Configuration Files
 
-
 All my shell-related startup scripts and configuration files in one place. With
 multiple laptops, each with their own WSL, and user accounts for remote servers
 to worry about, having all these files (finally) backed up and under version
@@ -9,7 +8,6 @@ cognitive load off my head.
 
 
 ## Files
-
 
 * For the **Bourne Again Shell (bash)**:
   * [.bash_profile](.bash_profile): Logon script.
@@ -32,7 +30,6 @@ cognitive load off my head.
 
 
 ## Setup
-
 
 Many startup scripts must be located at a specific path on the filesystem, so in
 order to get all of them in one place for convenient version control,
@@ -77,16 +74,15 @@ Original paths, where `~` denotes my `%USERPROFILE%`:
 
 ## Standalone Scripts or Binaries
 
-
 For these, copy the script or the corresponding executable to a special
 directory on your `PATH` such that you can invoke it directly at the command
 line like normal shell commands. For Windows systems, I decided to emulate the
 `bin` directory of Unix-like filesystems to centralize my custom binaries:
 
 ```sh
-mkdir /c/bin
-# Add C:\bin to the Path user environment variable.
-cp binary_name.exe /c/bin/binary_name.exe
+mkdir "~/bin"
+# Add %USERPROFILE%\bin to the Path user environment variable.
+cp binary_name.exe ~/binary_name.exe
 ```
 
 Note that you if you're setting up the directory and `PATH` for the first time,
