@@ -48,6 +48,7 @@ history = log --all -E --grep
 len = !"source ~/.gitfuncs; len"
 total = !"source ~/.gitfuncs; total"
 contribs = shortlog -s -n --all --no-merges
+	adda = add -A
 
 [init]
 defaultBranch = main
