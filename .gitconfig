@@ -17,7 +17,7 @@ staged = diff --staged
 cm = !"source ~/.gitfuncs; cm"
 sync = fetch --all
 ready = !git fetch origin HEAD && git lg 'HEAD@{u}..HEAD'
-gud = push --set-upstream origin HEAD
+	gud = push -u origin HEAD
 
 # Branches and paths
 co = checkout
@@ -49,6 +49,7 @@ len = !"source ~/.gitfuncs; len"
 total = !"source ~/.gitfuncs; total"
 contribs = shortlog -s -n --all --no-merges
 	adda = add -A
+	there = !echo general kenobi
 
 [init]
 defaultBranch = main
