@@ -32,6 +32,12 @@ export EINVAL=22
 # Paths relevant to me
 export REPOS_DIR="${HOME}/repos"
 
+# Shortcuts since my ucla folders are buried deep inside Documents
+export QUARTER="Spring 23" # Change every quarter
+export UCLA="${HOME}/Documents/ucla"
+export CLASSES="${UCLA}/classes/${QUARTER}"
+export UPE="${UCLA}/UPE"
+
 # Meta aliases
 alias rc='code ~/.bashrc'
 alias refresh='source ~/.bashrc'
