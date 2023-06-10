@@ -56,6 +56,9 @@ alias mime-encoding="file -b --mime-encoding"
 # Easier way to get a tab at the command line e.g. "$(tab)"
 alias tab="echo -en '\\011'"
 
+# Easter egg lol
+alias hello=git
+
 # Connect to UCLA Engineering lnxsrv NUM, default 15.
 function seas() {
     local SERVER_NUM=15 # ol' reliable
