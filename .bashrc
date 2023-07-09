@@ -101,6 +101,14 @@ function verilog() {
     fi
 }
 
+function pycache() {
+    local directory="$1"
+    if [ -z "$directory" ]; then
+        directory="."
+    fi
+    find "$directory" -type d -name "__pycache__" -exec rm -rf {} +
+}
+
 function activate() {
     local venv_folder="$1"
     if [ -z "$venv_folder" ]; then
