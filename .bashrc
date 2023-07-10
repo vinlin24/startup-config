@@ -1,4 +1,4 @@
-# .bashrc
+#!/usr/bin/env bash
 # Startup script for Git Bash shell.
 
 # NOTE: For some reason, to reference my home directory (C:\Users\vinlin), ~
