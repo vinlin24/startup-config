@@ -8,6 +8,9 @@
 # have my own .bashrc set up, I don't know why
 unalias -a
 
+# Custom binaries go in ~/bin
+export PATH="$HOME/bin:$PATH"
+
 # Default editor <3
 export EDITOR=code
 
