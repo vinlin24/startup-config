@@ -3,7 +3,7 @@ email = vinlin24@outlook.com
 name = Vincent Lin
 
 [core]
-editor = code
+editor = code -w
 
 [alias]
 # Meta commands
