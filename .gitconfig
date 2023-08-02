@@ -54,3 +54,6 @@ there = !echo general kenobi
 
 [init]
 defaultBranch = main
+
+[pull]
+ff = only
