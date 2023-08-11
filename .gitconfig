@@ -27,6 +27,7 @@ tracking = log -1 'HEAD@{u}'
 ls = ls-files
 root = rev-parse --show-toplevel
 back = !"source ~/.gitfuncs; back"
+cob = !git pull && git checkout -b # Make sure synced before branching
 
 # Recovery
 unstage = restore --staged
@@ -54,10 +55,6 @@ there = !echo general kenobi
 
 [init]
 defaultBranch = main
-[filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
-[safe]
-	directory = %(prefix)///wsl.localhost/Debian/home/vinlin/ps-repos/server
+
+[pull]
+ff = only
