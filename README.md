@@ -1,4 +1,4 @@
-# Startup Scripts and Configuration Files
+# Startup Scripts and Configuration Files (dotfiles)
 
 All my shell-related startup scripts and configuration files in one place. With
 multiple laptops, each with their own WSL, and user accounts for remote servers
@@ -19,14 +19,15 @@ cognitive load off my head.
   * [.gitfuncs](.gitfuncs): Script file to `source` from `.gitconfig` for more
     complicated command aliases.
 
-* For the **Python** interpreter:
+<!-- * For the **Python** interpreter:
   * [.pystartup](.pystartup): Python code to run when the interactive REPL is
     launched. The original path for this file can be set with the
-    `PYTHONSTARTUP` environment variable.
+    `PYTHONSTARTUP` environment variable. -->
 
-* For **Windows PowerShell**:
-  * [Microsoft.PowerShell_profile.ps1](Microsoft.PowerShell_profile.ps1): Shell
-    startup script.
+* ~~For **Windows PowerShell**:~~ *(**deprecated** as I always use Git Bash on
+  Windows now)*
+  * ~~[Microsoft.PowerShell_profile.ps1](Microsoft.PowerShell_profile.ps1): Shell
+    startup script.~~
 
 
 ## Setup
@@ -36,8 +37,33 @@ order to get all of them in one place for convenient version control,
 **symlinks** should be created at their original paths and linked to the files
 here.
 
-In Windows, this can be done by using the `mklink` command in CMD in
-**Administrator Mode**:
+
+### Not Windows
+
+On non-Windows systems, you should be able to just run:
+
+```sh
+./setup.sh
+```
+
+This will create symlinks under the `$HOME` directory pointing towards the files
+in the local copy of this repository. This also compiles any source code
+specified in the [Makefile](Makefile) into [bin/](bin/) and copies its contents
+into a special `${HOME}/bin` directory. These are scripts or binaries intended
+to be included on one's `$PATH`.
+
+> :warning: This means that [`.bashrc`](.bashrc) or the appropriate startup
+> script should make sure `${HOME}/bin` is added to `$PATH`:
+>
+> ```sh
+> export PATH="${HOME}/bin:${PATH}"
+> ```
+
+
+### Windows
+
+In Windows, `ln -s` does not work as expected. Instead, you have to use the
+`mklink` command in CMD in **Administrator Mode**:
 
 ```cmd
 mklink LINK TARGET
@@ -68,22 +94,30 @@ Original paths, where `~` denotes my `%USERPROFILE%`:
 * `~/.bashrc`
 * `~/.gitconfig`
 * `~/.gitfuncs`
-* `~/.pystartup`
 * `~/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1`
 
-
-## Standalone Scripts or Binaries
-
-For these, copy the script or the corresponding executable to a special
-directory on your `PATH` such that you can invoke it directly at the command
-line like normal shell commands. For Windows systems, I decided to emulate the
-`bin` directory of Unix-like filesystems to centralize my custom binaries:
+For the standalone scripts or binaries, copy them to our special `bin/`
+directory under our home directory.
 
 ```sh
 mkdir "~/bin"
 # Add %USERPROFILE%\bin to the Path user environment variable.
-cp binary_name.exe ~/binary_name.exe
+cp bin/binary_name.exe ~/bin
 ```
 
 Note that you if you're setting up the directory and `PATH` for the first time,
 you probably need to restart your computer to see the effect.
+
+
+## Syncing
+
+[`.bashrc`](.bashrc) defines the `sync_config` function, which you can use to
+update the local repository directly from the command line:
+
+```sh
+sync_config
+```
+
+Note that, at the moment, you will also have to manually run the
+[`setup.sh`](setup.sh) script again if there are new symlinks to create or
+updated binaries to compile.
