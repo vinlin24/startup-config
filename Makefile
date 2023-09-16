@@ -15,18 +15,18 @@ BIN_DIRECTORY = $(shell echo "$$HOME/bin")
 
 PATH_SCRIPTS = lint
 
-all:
-	@echo >&2 Specify a make target.
-	@exit 1
+all: branch venv
 
 .PHONY: branch
-branch: prompt/branch_state
-prompt/branch_state: prompt/branch_state.o
+branch: bin/branch_state
+bin/branch_state: prompt/branch_state.o
+	$(CC) $(CFLAGS) -o $@ $^
 prompt/branch_state.o: prompt/branch_state.c prompt/color.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 .PHONY: venv
-venv: prompt/venv_state
-prompt/venv_state: prompt/venv_state.o
+venv: bin/venv_state
+bin/venv_state: prompt/venv_state.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 prompt/venv_state.o: prompt/venv_state.cpp prompt/color.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
