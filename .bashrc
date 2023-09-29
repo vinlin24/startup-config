@@ -104,6 +104,11 @@ function verilog() {
     fi
 }
 
+# Create and populate a basic .gitattributes file.
+function gitattributes() {
+    echo "* text=auto eol=lf encoding=utf-8" >.gitattributes
+}
+
 function pycache() {
     local directory="$1"
     if [ -z "$directory" ]; then
