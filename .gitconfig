@@ -34,6 +34,7 @@ unstage = restore --staged
 untrack = rm --cached
 noedit = commit --amend --no-edit
 save = stash push
+fullsave = stash push --include-untracked
 load = stash apply
 undo = reset HEAD~
 redo = reset 'HEAD@{1}'
