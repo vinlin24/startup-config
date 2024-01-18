@@ -78,3 +78,9 @@ function back() {
     git pull
     git branch --delete "$branch_name"
 }
+
+# git since -- show commits between specified branch and current branch
+function since() {
+    local branch_name="$1"
+    git log --oneline "$branch_name"..HEAD
+}
