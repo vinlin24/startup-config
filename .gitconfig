@@ -28,7 +28,6 @@ ls = ls-files
 root = rev-parse --show-toplevel
 back = !"source ~/.gitfuncs; back"
 cob = !git pull && git checkout -b # Make sure synced before branching
-brd = !git pull && git br -d       # Delete a branch after PR is merged
 
 # Recovery
 unstage = restore --staged

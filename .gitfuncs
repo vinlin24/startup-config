@@ -73,7 +73,8 @@ function total() {
 
 # git back -- to run after a PR is approved and merged
 function back() {
-    local branch_name=$(git rev-parse --abbrev-ref HEAD)
+    local branch_name="$(git rev-parse --abbrev-ref HEAD)"
     git checkout main
+    git pull
     git branch --delete "$branch_name"
 }
