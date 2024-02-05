@@ -46,7 +46,11 @@ function len() {
     local MESSAGE=$(git log -1 $1 --pretty=%B | tr -d '\n')
     local LENGTH=$(echo -n $MESSAGE | wc -m)
     echo "$MESSAGE"
-    echo "${YELLOW}(${LENGTH} characters)${END}"
+    if [ $LENGTH -gt 50 ]; then
+        echo "${RED}(${LENGTH} characters)${END}"
+    else
+        echo "${YELLOW}(${LENGTH} characters)${END}"
+    fi
 }
 
 # git cm MESSAGE [FILE] -- validate len(MESSAGE) < 50 && make the commit
