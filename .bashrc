@@ -56,6 +56,9 @@ alias udiff="diff --color=auto -u"
 alias mime-type="file -b --mime-type"
 alias mime-encoding="file -b --mime-encoding"
 
+# For quick editing.
+alias text="/c/Program Files/Sublime Text 3/sublime_text.exe"
+
 # Easier way to get a tab at the command line e.g. "$(tab)"
 alias tab="echo -en '\\011'"
 
