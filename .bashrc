@@ -36,7 +36,7 @@ export EINVAL=22
 export REPOS_DIR="${HOME}/repos"
 
 # Shortcuts since my ucla folders are buried deep inside Documents
-export QUARTER="Spring 23" # Change every quarter
+export QUARTER="Winter 24" # Change every quarter (really, past me?)
 export UCLA="${HOME}/Documents/ucla"
 export CLASSES="${UCLA}/classes/${QUARTER}"
 export UPE="${UCLA}/UPE"
