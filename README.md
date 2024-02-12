@@ -29,6 +29,8 @@ cognitive load off my head.
   * ~~[Microsoft.PowerShell_profile.ps1](Microsoft.PowerShell_profile.ps1): Shell
     startup script.~~
 
+* Various scripts to add to `PATH`: [bin/](bin/).
+
 
 ## Setup
 
