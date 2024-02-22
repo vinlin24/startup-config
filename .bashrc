@@ -47,6 +47,7 @@ alias refresh='source ~/.bashrc'
 
 # Convenience aliases/partials of existing commands
 alias updatepip='python -m pip install --upgrade pip'
+alias gpip='PIP_REQUIRE_VIRTUALENV=false pip'
 alias la="ls -A"
 alias ll="ls -Al"
 alias grep="grep --color=auto"
