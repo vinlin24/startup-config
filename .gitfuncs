@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# .gitfuncs: script file to source for more complicated Git aliases
-# USAGE (within ~/.gitconfig): alias-name = !"source ~/.gitfuncs; func-name"
+# .gitfuncs: script file to source for more complicated Git aliases.
+#
+# USAGE (within ~/.gitconfig):
+#
+#       alias-name = !"bash -c 'source ~/.gitfuncs; func-name'"
 
 # ANSI escape sequences for colored text
 RED=$(tput setaf 1)

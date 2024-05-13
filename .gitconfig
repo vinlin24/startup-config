@@ -7,14 +7,14 @@ editor = code -w
 
 [alias]
 # Meta commands
-gl = !"source ~/.gitfuncs; gl"
-alias = !"source ~/.gitfuncs; alias"
+gl = !"bash -c 'source ~/.gitfuncs; gl'"
+alias = !"bash -c 'source ~/.gitfuncs; alias'"
 cfg = !code ~/.gitconfig
 
 # Primary workflow
 s = status
 staged = diff --staged
-cm = !"source ~/.gitfuncs; cm"
+cm = !"bash -c 'source ~/.gitfuncs; cm'"
 sync = fetch --all
 ready = !git fetch origin HEAD && git lg 'HEAD@{u}..HEAD'
 gud = push -u origin HEAD
@@ -26,8 +26,8 @@ urls = remote -v
 tracking = log -1 'HEAD@{u}'
 ls = ls-files
 root = rev-parse --show-toplevel
-back = !"source ~/.gitfuncs; back"
-since = !"source ~/.gitfuncs; since"
+back = !"bash -c 'source ~/.gitfuncs; back'"
+since = !"bash -c 'source ~/.gitfuncs; since'"
 cob = !git pull && git checkout -b # Make sure synced before branching
 
 # Recovery
@@ -41,7 +41,7 @@ undo = reset HEAD~
 redo = reset 'HEAD@{1}'
 
 # History checking
-lg = !"source ~/.gitfuncs; lg"
+lg = !"bash -c 'source ~/.gitfuncs; lg'"
 last = log -1 HEAD --stat
 graph = log --all --graph --oneline --decorate
 search = !git rev-list --all | xargs git grep -F
@@ -49,8 +49,8 @@ match = !git rev-list --all | xargs git grep -E
 history = log --all -E --grep
 
 # Statistics
-len = !"source ~/.gitfuncs; len"
-total = !"source ~/.gitfuncs; total"
+len = !"bash -c 'source ~/.gitfuncs; len'"
+total = !"bash -c 'source ~/.gitfuncs; total'"
 contribs = shortlog -s -n --all --no-merges
 adda = add -A
 there = !echo general kenobi
