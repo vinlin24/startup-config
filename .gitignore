@@ -10,6 +10,9 @@ __pycache__/
 .vscode*/
 *.code-workspace
 
+# Commit message file
+COMMIT_MESSAGE
+
 # Playground for throwaway code
 /temp/
 
