@@ -17,6 +17,7 @@ staged = diff --staged
 cm = !"bash -c 'source ~/.gitfuncs; cm'"
 cf = commit --edit --file
 sync = fetch --all
+fuckitweball = commit --no-verify
 ready = !git fetch origin HEAD && git lg 'HEAD@{u}..HEAD'
 gud = push -u origin HEAD
 
